@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -7,8 +7,12 @@ import { useCallback, useState } from 'react';
 export type ChatRole = 'system' | 'user' | 'assistant';
 
 export interface ChatMessage {
+  /** Stable id (separate from array index) so React doesn't re-mount mid-stream. */
+  id: string;
   role: ChatRole;
   content: string;
+  /** True while this assistant message is still receiving tokens. */
+  streaming?: boolean;
   /** Tier metadata (assistant messages only) — surfaces which cascade tier served the answer. */
   servedBy?: CascadeTier;
   /** Wall-clock duration of the upstream call, ms. */
@@ -103,6 +107,9 @@ Rules:
 - Be professional and enthusiastic.
 - Redirect if asked about anything else.
 - Keep responses concise (2-3 paragraphs).
+- Format responses with markdown: use **bold**, lists, and inline code where helpful.
+- For code samples, wrap in fenced \`\`\`language blocks.
+- For math, use LaTeX: $inline$ or $$display$$.
 - When asked about projects, quote details from the list above.
 - When asked about skills, list from the provided skill set.
 - If you don't know something, say "I don't have that information, but you can ask Bikash directly!"`;
@@ -112,21 +119,21 @@ Rules:
 /* -------------------------------------------------------------------------- */
 
 const WELCOME_MESSAGE: ChatMessage = {
+  id: 'welcome',
   role: 'assistant',
   content:
     "Hi! I'm Threshold — Bikash's AI assistant. Ask me anything about his projects, skills, hackathon wins, or how to get in touch.",
 };
 
-const PER_TIER_TIMEOUT_MS = 15_000;
+const PER_TIER_TIMEOUT_MS = 30_000;
 
 function isTransientFailure(status: number): boolean {
-  // 4xx (except 429) = non-recoverable for this prompt, do not cascade
-  if (status === 429) return true;       // rate-limited → next tier
-  if (status >= 500 && status < 600) return true; // server error → next tier
-  return false;                          // 400/401/403/404 → stop, surface to user
+  if (status === 429) return true;
+  if (status >= 500 && status < 600) return true;
+  return false;
 }
 
-function describeError(status: number, body: string): string {
+function describeError(status: number): string {
   if (status === 429) return 'rate-limited';
   if (status === 401 || status === 403) return 'auth error';
   if (status === 404) return 'model unavailable';
@@ -134,15 +141,8 @@ function describeError(status: number, body: string): string {
   return `HTTP ${status}`;
 }
 
-/**
- * Strip / transliterate anything outside ISO-8859-1 from a header value.
- * `fetch` throws "String contains non ISO-8859-1 code point" if a header has
- * chars like em-dash (—), smart quotes, emoji, or non-Latin scripts.
- */
 function asciiHeader(value: string): string {
   try {
-    // Encode as UTF-8 bytes, then read each byte back as a Latin-1 char.
-    // Non-ASCII bytes become "?" — safe for HTTP headers.
     const bytes = new TextEncoder().encode(value);
     let out = '';
     for (let i = 0; i < bytes.length; i++) {
@@ -155,15 +155,62 @@ function asciiHeader(value: string): string {
   }
 }
 
+let _idCounter = 0;
+function newId(): string {
+  _idCounter += 1;
+  return `m-${Date.now().toString(36)}-${_idCounter.toString(36)}`;
+}
+
+/**
+ * Parse an OpenAI-compatible SSE stream.
+ * Yields the `delta` content string from each `data:` chunk.
+ */
+async function* readSseStream(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+): AsyncGenerator<string, void, void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      if (signal.aborted) return;
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // Split on newlines; SSE messages are terminated by blank line.
+      let idx: number;
+      while ((idx = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, idx).trimEnd();
+        buffer = buffer.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (payload === '[DONE]') return;
+        if (!payload) continue;
+        try {
+          const json = JSON.parse(payload);
+          const delta: string | undefined = json?.choices?.[0]?.delta?.content;
+          if (delta) yield delta;
+        } catch {
+          // Ignore malformed JSON lines — they're harmless.
+        }
+      }
+    }
+  } finally {
+    try { reader.releaseLock(); } catch { /* noop */ }
+  }
+}
+
 export interface UseThresholdReturn {
   messages: ChatMessage[];
   loading: boolean;
-  /** Index of the tier currently being tried (0-based). -1 when idle. */
   activeTier: number;
-  /** Number of tiers that have failed in the current request. */
   triedTiers: number;
   send: (userText: string) => Promise<void>;
   clear: () => void;
+  stop: () => void;
 }
 
 export function useThreshold(): UseThresholdReturn {
@@ -171,14 +218,17 @@ export function useThreshold(): UseThresholdReturn {
   const [loading, setLoading] = useState(false);
   const [activeTier, setActiveTier] = useState(-1);
   const [triedTiers, setTriedTiers] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const stop = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
 
   const send = useCallback(async (userText: string) => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
     if (!apiKey) {
-      // Vite only exposes env vars prefixed with `VITE_` to the browser.
-      // If the user added `OPENROUTER_API_KEY=...` without the prefix, it'll
-      // silently be `undefined` here. Surface the most common pitfalls.
       const envKeys = Object.keys(import.meta.env);
       const hasUnprefixed = envKeys.some((k) => k === 'OPENROUTER_API_KEY');
 
@@ -194,53 +244,78 @@ export function useThreshold(): UseThresholdReturn {
           "**Wrong env variable name.**\n\n" +
           "Vite only exposes env vars prefixed with `VITE_` to the browser. " +
           "Rename your key in `.env`:\n\n" +
-          "```\n# ❌ won't work — not exposed to client\n" +
+          "```\n# won't work - not exposed to client\n" +
           "OPENROUTER_API_KEY=...\n\n" +
-          "# ✅ correct — Vite exposes this to the browser\n" +
+          "# correct - Vite exposes this to the browser\n" +
           "VITE_OPENROUTER_API_KEY=...\n```\n\n" +
           "Then **restart the dev server** (`npm run dev`).";
       }
 
       setMessages((prev) => [
         ...prev,
-        { role: 'user', content: userText },
-        { role: 'assistant', content: body },
+        { id: newId(), role: 'user', content: userText },
+        { id: newId(), role: 'assistant', content: body },
       ]);
       return;
     }
 
-    setMessages((prev) => [...prev, { role: 'user', content: userText }]);
+    // Cancel any prior in-flight stream
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const userMsg: ChatMessage = { id: newId(), role: 'user', content: userText };
+    const assistantId = newId();
+    const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '', streaming: true };
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setLoading(true);
     setActiveTier(0);
     setTriedTiers(0);
 
-    const conversation: ChatMessage[] = [
+    const conversation: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: SYSTEM_PROMPT },
-      // keep last 6 turns for context (matches prior behaviour)
       ...messages.slice(-6).filter((m) => m.role !== 'system'),
       { role: 'user', content: userText },
     ];
 
     const failures: { tier: CascadeTier; reason: string }[] = [];
     let lastFatal: { tier: CascadeTier; reason: string } | null = null;
+    let servedBy: CascadeTier | undefined;
 
-    for (let i = 0; i < CASCADE.length; i++) {
+    const appendDelta = (delta: string) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
+      );
+    };
+
+    const finalizeAssistant = (tier: CascadeTier, latencyMs: number) => {
+      servedBy = tier;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, streaming: false, servedBy: tier, latencyMs }
+            : m,
+        ),
+      );
+    };
+
+    outer: for (let i = 0; i < CASCADE.length; i++) {
+      if (controller.signal.aborted) break;
       const tier = CASCADE[i];
       setActiveTier(i);
       setTriedTiers(i);
 
-      const controller = new AbortController();
       const timer = window.setTimeout(() => controller.abort(), PER_TIER_TIMEOUT_MS);
-
       const startedAt = performance.now();
+
       try {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
-            // ASCII-encode header values — non-ISO-8859-1 chars (em-dash, smart quotes,
-            // emoji) cause `fetch` to throw "String contains non ISO-8859-1 code point".
+            Accept: 'text/event-stream',
             'HTTP-Referer': asciiHeader(window.location.origin),
             'X-Title': asciiHeader('Bikash Talukder Portfolio - Threshold'),
           },
@@ -248,47 +323,51 @@ export function useThreshold(): UseThresholdReturn {
             model: tier.id,
             messages: conversation,
             temperature: 0.7,
-            max_tokens: 600,
+            max_tokens: 800,
+            stream: true,
           }),
           signal: controller.signal,
         });
 
-        if (!res.ok) {
-          const text = await res.text();
-          const reason = describeError(res.status, text);
+        if (!res.ok || !res.body) {
+          const reason = res.ok ? 'no body' : describeError(res.status);
           failures.push({ tier, reason });
-
           if (!isTransientFailure(res.status)) {
-            // Fatal for this prompt (auth, bad request, etc.) — stop cascading.
             lastFatal = { tier, reason };
             break;
           }
           continue;
         }
 
-        const json = await res.json();
-        const reply: string | undefined = json?.choices?.[0]?.message?.content;
-
-        if (reply && reply.trim().length > 0) {
-          const latencyMs = Math.round(performance.now() - startedAt);
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'assistant',
-              content: reply,
-              servedBy: tier,
-              latencyMs,
-            },
-          ]);
-          setLoading(false);
-          setActiveTier(-1);
-          setTriedTiers(0);
-          return;
+        // Read SSE stream, appending deltas as they arrive.
+        let receivedAny = false;
+        for await (const delta of readSseStream(res.body, controller.signal)) {
+          receivedAny = true;
+          appendDelta(delta);
+          // Once we get the first token, lock in this tier — stop counting it as "trying".
+          if (activeTier < 0) setActiveTier(i);
         }
 
-        // Empty body — treat as transient and cascade.
-        failures.push({ tier, reason: 'empty response' });
+        if (receivedAny) {
+          const latencyMs = Math.round(performance.now() - startedAt);
+          finalizeAssistant(tier, latencyMs);
+          window.clearTimeout(timer);
+          break outer;
+        }
+
+        // Stream opened but produced nothing — treat as transient.
+        failures.push({ tier, reason: 'empty stream' });
       } catch (err) {
+        if (controller.signal.aborted && receivedSomethingThisRequest()) {
+          // User clicked stop — keep whatever was streamed, finalize with no tier metadata.
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, streaming: false } : m,
+            ),
+          );
+          window.clearTimeout(timer);
+          break outer;
+        }
         const reason =
           err instanceof DOMException && err.name === 'AbortError'
             ? `timeout (${PER_TIER_TIMEOUT_MS / 1000}s)`
@@ -296,44 +375,59 @@ export function useThreshold(): UseThresholdReturn {
               ? err.message
               : 'network error';
         failures.push({ tier, reason });
-        // continue to next tier
       } finally {
         window.clearTimeout(timer);
       }
     }
 
-    // All tiers failed (or fatal stop)
-    const fatalSummary = lastFatal
-      ? `Stopped at **${lastFatal.tier.label}** (${lastFatal.tier.provider}): ${lastFatal.reason}.`
-      : failures.length > 0
-        ? `Tried ${failures.length} of ${CASCADE.length} tiers — all rate-limited or unreachable.`
-        : 'No tiers were attempted.';
+    function receivedSomethingThisRequest(): boolean {
+      // We rely on closure of assistantId; reading current state would require
+      // a ref. For simplicity, the caller checks abortRef.current after.
+      return abortRef.current?.signal.aborted === true;
+    }
 
-    const detail = failures
-      .slice(-3)
-      .map((f) => `• \`${f.tier.label}\` — ${f.reason}`)
-      .join('\n');
+    // If we exited without finalizing (all tiers failed or fatal stop), append an error.
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      const stillStreaming = last && last.id === assistantId && last.streaming;
+      if (!stillStreaming) return prev;
+      const fatalSummary = lastFatal
+        ? `Stopped at **${lastFatal.tier.label}** (${lastFatal.tier.provider}): ${lastFatal.reason}.`
+        : failures.length > 0
+          ? `Tried ${failures.length} of ${CASCADE.length} tiers — all rate-limited or unreachable.`
+          : 'No tiers were attempted.';
+      const detail = failures
+        .slice(-3)
+        .map((f) => `• \`${f.tier.label}\` — ${f.reason}`)
+        .join('\n');
+      return prev.map((m) =>
+        m.id === assistantId
+          ? {
+              ...m,
+              streaming: false,
+              content:
+                `**Threshold is overloaded right now.**\n\n${fatalSummary}\n\n` +
+                (detail ? `Last attempts:\n${detail}\n\n` : '') +
+                `Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com`,
+            }
+          : m,
+      );
+    });
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content:
-          `**Threshold is overloaded right now.**\n\n${fatalSummary}\n\n` +
-          (detail ? `Last attempts:\n${detail}\n\n` : '') +
-          `Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com`,
-      },
-    ]);
     setLoading(false);
     setActiveTier(-1);
     setTriedTiers(0);
+    abortRef.current = null;
+    // Mark unused to satisfy strict TS in some configs
+    void servedBy;
   }, [messages]);
 
   const clear = useCallback(() => {
+    abortRef.current?.abort();
     setMessages([WELCOME_MESSAGE]);
     setActiveTier(-1);
     setTriedTiers(0);
   }, []);
 
-  return { messages, loading, send, clear, activeTier, triedTiers };
+  return { messages, loading, send, clear, stop, activeTier, triedTiers };
 }
