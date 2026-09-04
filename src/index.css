@@ -2,13 +2,17 @@
 @import "katex/dist/katex.min.css";
 
 /* -------------------------------------------------------------------------- */
-/*  Default tokens — applied to <html> before React hydrates.                  */
+/*  Theme tokens                                                              */
 /*                                                                             */
-/*  The hook in `useTheme.ts` overwrites these inline as soon as it mounts,   */
-/*  so the values below only matter for the ~50ms of first paint. They match  */
-/*  the `DEFAULT_PALETTE` (Briar Rose) so users see no flash on first load.   */
+/*  Tailwind v4 reads the @theme block and emits `bg-primary`, `text-text`,   */
+/*  `border-border`, etc. utilities, while also producing `--color-*` CSS     */
+/*  vars that we can override at runtime via `useTheme.ts`.                    */
+/*                                                                             */
+/*  Values below are the Briar Rose default. The hook in useTheme.ts sets     */
+/*  them inline on <html> as soon as it mounts, switching palettes without     */
+/*  rebuilding Tailwind's emitted utility classes.                             */
 /* -------------------------------------------------------------------------- */
-:root {
+@theme {
   --color-primary: #BE7585;
   --color-primary-light: #E1A1AD;
   --color-primary-dark: #8E5463;
@@ -37,41 +41,25 @@
   --animate-pill-glide: pill-glide 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-primary-light: var(--color-primary-light);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-secondary: var(--color-secondary);
-  --color-secondary-light: var(--color-secondary-light);
-  --color-bg: var(--color-bg);
-  --color-bg-2: var(--color-bg-2);
-  --color-surface: var(--color-surface);
-  --color-surface-2: var(--color-surface-2);
-  --color-text: var(--color-text);
-  --color-text-muted: var(--color-text-muted);
-  --color-border: var(--color-border);
-
-  --font-heading: "Space Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-glow: glow 2.5s ease-in-out infinite;
-  --animate-gradient: gradient 8s ease infinite;
-  --animate-pill-glide: pill-glide 600ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 @layer base {
   html {
-    /* Smooth-scroll behavior + reduced-motion opt-out are handled by the
-       useSmoothScroll hook (lerped target, settle-to-section). CSS scroll-snap
-       is intentionally *disabled* to avoid fighting the hook. */
-    scroll-padding-top: 48px;
+    /* Native smooth scrolling — every anchor link / programmatic scrollTo /
+       keyboard nav glides instead of jumping. `overscroll-behavior-y: contain`
+       keeps the bounce from bleeding into the parent document. */
+    scroll-behavior: smooth;
+    /* Soft section-by-section snap on release. `proximity` doesn't trap
+       readers mid-section — you can still scroll freely through long
+       content; the snap only fires when you've released near a section top. */
+    scroll-snap-type: y proximity;
+    /* scroll-padding-top is set by useSmoothScroll to match navbar height,
+       with a sensible fallback here. */
+    scroll-padding-top: 64px;
     overscroll-behavior-y: contain;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
+      scroll-snap-type: none;
       scroll-padding-top: 0;
     }
   }
@@ -92,9 +80,16 @@
     background-color: var(--color-primary);
     color: white;
   }
-  /* Anchor targets — leave 48px clear of the sticky navbar. */
+  /* Each section snaps to its top when the user releases near it. */
   section[id] {
-    scroll-margin-top: 48px;
+    scroll-margin-top: 64px;
+    scroll-snap-align: start;
+  }
+  /* But the chat widget's scrollable list must NOT snap — let users scroll
+     freely inside messages. */
+  #threshold-chat,
+  #threshold-chat * {
+    scroll-snap-align: none;
   }
 }
 

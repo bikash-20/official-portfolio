@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FaGithub,
@@ -20,94 +19,7 @@ const socials = [
   { icon: FaEnvelope, href: 'mailto:bikashtalukder040@gmail.com', label: 'Email' },
 ];
 
-type CTA = 'work' | 'hire';
-
-interface CTAConfig {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  gradient: boolean;
-  external?: boolean;
-}
-
-const CTA_OPTIONS: Record<CTA, CTAConfig> = {
-  work: {
-    href: '#projects',
-    label: 'View Work',
-    icon: <FaArrowRight />,
-    gradient: true,
-  },
-  hire: {
-    href: '#contact',
-    label: 'Hire Me',
-    icon: <FaEnvelope />,
-    gradient: true,
-  },
-};
-
-/**
- * Segmented pill CTA toggle.
- * - Two options inside a single pill container.
- * - The "thumb" glides between options via Framer Motion layoutId.
- * - Hovering an option gives it a soft scale + glow.
- * - The primary button below swaps href/label based on selection.
- */
-function CTASegmentedToggle({
-  value,
-  onChange,
-}: {
-  value: CTA;
-  onChange: (next: CTA) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Primary action"
-      className="relative inline-flex p-1 rounded-full bg-surface/80 border border-border backdrop-blur-sm shadow-inner shadow-black/10"
-    >
-      {(['work', 'hire'] as const).map((key) => {
-        const isActive = value === key;
-        const cfg = CTA_OPTIONS[key];
-        return (
-          <button
-            key={key}
-            role="tab"
-            type="button"
-            aria-selected={isActive}
-            onClick={() => onChange(key)}
-            className={`relative z-10 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-              isActive ? 'text-white' : 'text-text-muted hover:text-text'
-            }`}
-          >
-            {isActive && (
-              <motion.span
-                layoutId="hero-cta-thumb"
-                transition={{ type: 'spring', stiffness: 480, damping: 32 }}
-                className="absolute inset-0 rounded-full gradient-bg shadow-lg shadow-primary/40"
-                aria-hidden="true"
-              />
-            )}
-            <span className="relative z-10 inline-flex items-center gap-2">
-              <span
-                className={`transition-transform duration-300 ${
-                  isActive ? 'scale-110' : 'group-hover:scale-105'
-                }`}
-              >
-                {cfg.icon}
-              </span>
-              {cfg.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function Hero() {
-  const [cta, setCta] = useState<CTA>('work');
-  const active = CTA_OPTIONS[cta];
-
   return (
     <section
       id="home"
@@ -180,38 +92,44 @@ export default function Hero() {
             <span>78+ Repos · 2,280+ Contributions</span>
           </motion.div>
 
-          {/* CTA block: segmented pill toggle + the active primary CTA + CV */}
+          {/* CTA block: primary + secondary + CV — no toggle, no duplicate. */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-4"
           >
-            <CTASegmentedToggle value={cta} onChange={setCta} />
-
-            {/* Primary CTA — slides/fades when its destination changes */}
+            {/* Primary: View Work → projects */}
             <motion.a
-              key={cta}
-              href={active.href}
-              initial={{ opacity: 0, y: 8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              href="#projects"
               whileHover={{ scale: 1.04, y: -1 }}
               whileTap={{ scale: 0.97 }}
               className="group inline-flex items-center gap-2 px-5 py-3 rounded-full gradient-bg text-white font-medium shadow-lg shadow-primary/40 hover:shadow-primary/60 transition-shadow"
-              aria-label={active.label}
+              aria-label="View Work"
             >
-              {active.label}
+              View Work
               <span className="transition-transform duration-300 group-hover:translate-x-1">
                 <FaArrowRight />
               </span>
             </motion.a>
 
-            {/* Secondary: download CV (always present) */}
+            {/* Secondary: Hire Me → contact */}
+            <motion.a
+              href="#contact"
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-full border border-secondary/40 text-secondary-light hover:bg-secondary/10 hover:border-secondary/70 transition-all"
+              aria-label="Hire Me"
+            >
+              <FaEnvelope />
+              Hire Me
+            </motion.a>
+
+            {/* Tertiary: download CV */}
             <a
               href="/assets/resume.pdf"
               download
-              className="group inline-flex items-center gap-2 px-5 py-3 rounded-full border border-secondary/40 text-secondary-light hover:bg-secondary/10 hover:border-secondary/70 transition-all hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-full border border-border text-text-muted hover:text-text hover:border-primary/40 transition-all hover:-translate-y-0.5"
             >
               <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
                 <FaDownload />
