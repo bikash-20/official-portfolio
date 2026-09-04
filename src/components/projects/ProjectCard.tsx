@@ -75,7 +75,7 @@ export default function ProjectCard({ project, delay = 0 }: Props) {
               href={project.liveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary/15 hover:bg-primary/25 text-primary-light text-sm font-medium transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-primary/15 hover:bg-primary/25 text-primary-light text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/20"
             >
               <FaExternalLinkAlt size={12} /> Live Demo
             </a>
@@ -85,7 +85,7 @@ export default function ProjectCard({ project, delay = 0 }: Props) {
               href={project.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface hover:bg-surface-2 text-text text-sm font-medium transition-colors border border-border"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-surface hover:bg-surface-2 text-text text-sm font-medium transition-all border border-border hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
             >
               <FaGithub size={13} /> GitHub
             </a>

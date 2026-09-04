@@ -106,7 +106,7 @@ export default function Contact() {
                     </div>
                     <button
                       onClick={() => handleCopy(c.value, c.label)}
-                      className="p-2 rounded-lg hover:bg-surface text-text-muted hover:text-text transition-colors shrink-0"
+                      className="p-2 rounded-full hover:bg-surface text-text-muted hover:text-text transition-colors shrink-0"
                       title="Copy"
                       aria-label={`Copy ${c.label}`}
                     >
@@ -124,7 +124,7 @@ export default function Contact() {
             <a
               href="/assets/resume.pdf"
               download
-              className="mt-5 inline-flex items-center gap-2 px-5 py-3 rounded-lg gradient-bg text-white font-medium shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all"
+              className="mt-5 inline-flex items-center gap-2 px-5 py-3 rounded-full gradient-bg text-white font-medium shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all"
             >
               <FaDownload /> Download Full Résumé
             </a>
@@ -180,7 +180,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="w-full py-3 rounded-lg gradient-bg text-white font-medium shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-full gradient-bg text-white font-medium shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {status === 'sending'
                   ? 'Sending…'
