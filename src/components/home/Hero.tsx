@@ -243,48 +243,40 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Right: Profile */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="order-1 lg:order-2 flex justify-center"
+        {/* Right: Editorial portrait */}
+        <motion.figure
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="order-1 lg:order-2 relative"
         >
-          <div className="relative w-56 h-56 sm:w-72 sm:h-72 lg:w-96 lg:h-96">
-            {/* Glow ring */}
-            <div className="absolute inset-0 rounded-full gradient-bg opacity-60 blur-2xl animate-pulse" />
-            <div
-              className="absolute -inset-2 rounded-full"
-              style={{
-                background: 'conic-gradient(from 0deg, #6C63FF, #FF6584, #6C63FF)',
-                animation: 'spin 12s linear infinite',
-              }}
+          <div className="relative aspect-[4/5] w-full max-w-md mx-auto overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl shadow-black/30">
+            <img
+              src="/assets/profile.jpg"
+              alt="Bikash Talukder"
+              className="w-full h-full object-cover saturate-[0.95] contrast-[1.02]"
             />
-            <div className="absolute inset-2 rounded-full bg-bg overflow-hidden border-4 border-bg">
-              <img
-                src="/assets/profile.jpg"
-                alt="Bikash Talukder"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Floating badges */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -top-3 -right-3 px-3 py-1.5 rounded-full glass-strong text-xs font-medium text-text shadow-lg"
-            >
-              13+ Projects
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-              className="absolute -bottom-3 -left-3 px-3 py-1.5 rounded-full glass-strong text-xs font-medium text-text shadow-lg"
-            >
-              2x Finalist
-            </motion.div>
+            {/* Faint bottom vignette so the caption block reads well in both themes */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+            />
           </div>
-        </motion.div>
+
+          {/* Editorial caption beneath the image */}
+          <figcaption className="mt-5 flex items-baseline justify-between gap-4 px-1">
+            <div className="font-heading text-sm sm:text-base font-semibold tracking-[0.18em] uppercase text-text">
+              Bikash Talukder
+            </div>
+            <div className="font-mono text-[11px] sm:text-xs tracking-[0.22em] text-text-muted">
+              MMXXVI / 01
+            </div>
+          </figcaption>
+          <div className="mt-1.5 h-px w-full bg-border" />
+          <p className="mt-2 px-1 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-text-muted">
+            Full-Stack Developer · AI Systems Builder · Sylhet, BD
+          </p>
+        </motion.figure>
       </div>
 
       {/* Scroll cue */}
