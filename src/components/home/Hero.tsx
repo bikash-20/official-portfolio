@@ -9,7 +9,6 @@ import {
   FaMapMarkerAlt,
 } from 'react-icons/fa';
 import { SiLeetcode } from 'react-icons/si';
-import TypingEffect from './TypingEffect';
 
 const socials = [
   { icon: FaGithub, href: 'https://github.com/bikash-20', label: 'GitHub' },
@@ -68,14 +67,14 @@ export default function Hero() {
             <span className="gradient-text font-semibold">AI Systems Builder</span>
           </motion.p>
 
-          <motion.div
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-4 text-base sm:text-lg h-8 sm:h-10 flex items-center justify-center lg:justify-start"
+            className="mt-5 font-mono text-xs sm:text-sm tracking-[0.18em] uppercase text-text-muted text-center lg:text-left"
           >
-            <TypingEffect />
-          </motion.div>
+            Full-stack · LLM engineering · Production AI systems
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
