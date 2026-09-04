@@ -153,14 +153,35 @@ export function useThreshold(): UseThresholdReturn {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
     if (!apiKey) {
+      // Vite only exposes env vars prefixed with `VITE_` to the browser.
+      // If the user added `OPENROUTER_API_KEY=...` without the prefix, it'll
+      // silently be `undefined` here. Surface the most common pitfalls.
+      const envKeys = Object.keys(import.meta.env);
+      const hasUnprefixed = envKeys.some((k) => k === 'OPENROUTER_API_KEY');
+
+      let body =
+        "**API key not configured.**\n\n" +
+        "Add your free OpenRouter API key to `.env` at the project root:\n\n" +
+        "```\nVITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here\n```\n\n" +
+        "Then **restart the dev server** (`npm run dev`) so Vite picks up the new env file.\n\n" +
+        "Get a free key at https://openrouter.ai/keys";
+
+      if (hasUnprefixed) {
+        body =
+          "**Wrong env variable name.**\n\n" +
+          "Vite only exposes env vars prefixed with `VITE_` to the browser. " +
+          "Rename your key in `.env`:\n\n" +
+          "```\n# ❌ won't work — not exposed to client\n" +
+          "OPENROUTER_API_KEY=...\n\n" +
+          "# ✅ correct — Vite exposes this to the browser\n" +
+          "VITE_OPENROUTER_API_KEY=...\n```\n\n" +
+          "Then **restart the dev server** (`npm run dev`).";
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: 'user', content: userText },
-        {
-          role: 'assistant',
-          content:
-            "**API key not configured.**\n\nTo enable Threshold, add your free OpenRouter API key to `.env`:\n\n```\nVITE_OPENROUTER_API_KEY=your_key_here\n```\n\nGet a free key at https://openrouter.ai/keys",
-        },
+        { role: 'assistant', content: body },
       ]);
       return;
     }
