@@ -27,15 +27,14 @@ export interface CascadeTier {
 /* -------------------------------------------------------------------------- */
 
 export const CASCADE: readonly CascadeTier[] = [
-  // Tier order = preference. First hit wins. Free models rotate frequently on
-  // OpenRouter, so swap any 404/410 here for the current equivalent in
-  // https://openrouter.ai/models?max_price=0
-  { id: 'meta-llama/llama-3.1-8b-instruct:free',             label: 'llama-3.1-8b',  provider: 'Meta',     contextK: 128 },
-  { id: 'meta-llama/llama-3.3-70b-instruct:free',            label: 'llama-3.3-70b', provider: 'Meta',     contextK: 128 },
-  { id: 'google/gemini-2.0-flash-exp:free',                 label: 'gemini-2.0-flash', provider: 'Google', contextK: 1024 },
-  { id: 'mistralai/mistral-7b-instruct:free',                label: 'mistral-7b',    provider: 'Mistral',  contextK: 32 },
-  { id: 'qwen/qwen-2.5-72b-instruct:free',                  label: 'qwen-2.5-72b',  provider: 'Alibaba',  contextK: 128 },
-  { id: 'openai/gpt-oss-20b:free',                          label: 'gpt-oss-20b',   provider: 'OpenAI',   contextK: 128 },
+  // Real free models currently live on OpenRouter (verified via /api/v1/models).
+  // First hit wins. Rotate or extend as OpenRouter adds/removes tiers.
+  { id: 'meta-llama/llama-3.1-8b-instruct:free',                  label: 'llama-3.1-8b',         provider: 'Meta',                contextK: 128  },
+  { id: 'minimax/minimax-m3:free',                                label: 'minimax-m3',           provider: 'MiniMax',             contextK: 1024 },
+  { id: 'google/gemma-4-31b-it:free',                             label: 'gemma-4-31b',          provider: 'Google',              contextK: 256  },
+  { id: 'z-ai/glm-5.2:free',                                      label: 'glm-5.2',              provider: 'Z.ai',                contextK: 256  },
+  { id: 'thinkingmachines/inkling:free',                          label: 'inkling',              provider: 'Thinking Machines',   contextK: 1024 },
+  { id: 'nvidia/nemotron-3-super-120b-a12b:free',                 label: 'nemotron-3-super',     provider: 'NVIDIA',              contextK: 256  },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
