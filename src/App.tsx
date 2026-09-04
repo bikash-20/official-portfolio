@@ -8,22 +8,25 @@ import Achievements from '@/components/achievements/Achievements';
 import Interests from '@/components/interests/Interests';
 import Contact from '@/components/contact/Contact';
 import ChatBubble from '@/components/ai/ChatBubble';
+import { SkillFilterProvider } from '@/hooks/useSkillFilter';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-bg text-text font-body selection:bg-primary selection:text-white">
-      <Navbar />
-      <main>
-        <Hero />
-        <SkillsGrid />
-        <Projects />
-        <Dashboard />
-        <Achievements />
-        <Interests />
-        <Contact />
-      </main>
-      <Footer />
-      <ChatBubble />
-    </div>
+    <SkillFilterProvider>
+      <div className="min-h-screen bg-bg text-text font-body selection:bg-primary selection:text-white">
+        <Navbar />
+        <main>
+          <Hero />
+          <SkillsGrid />
+          <Projects />
+          <Dashboard />
+          <Achievements />
+          <Interests />
+          <Contact />
+        </main>
+        <Footer />
+        <ChatBubble />
+      </div>
+    </SkillFilterProvider>
   );
 }

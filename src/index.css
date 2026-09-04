@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
+  /* Colors — dark mode defaults */
   --color-primary: #6C63FF;
   --color-primary-light: #8B85FF;
   --color-primary-dark: #4B45CC;
@@ -27,6 +27,53 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-glow: glow 2.5s ease-in-out infinite;
   --animate-gradient: gradient 8s ease infinite;
+  --animate-pill-glide: pill-glide 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Light theme — flips semantic surface/text tokens only.
+   Brand colors (primary/secondary/success/warning/info) stay identical so
+   visual identity is consistent across modes. */
+:root[data-theme="light"] {
+  --color-bg: #F7F7FB;
+  --color-bg-2: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #EEF0F8;
+  --color-text: #0A0A14;
+  --color-text-muted: #5A5A75;
+  --color-border: #E2E2EE;
+  --color-primary-dark: #5A52E5;
+}
+
+:root[data-theme="light"] body {
+  background-color: var(--color-bg);
+}
+
+/* Glass surfaces need higher opacity + darker border in light mode to read well */
+:root[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(226, 226, 238, 0.9);
+}
+:root[data-theme="light"] .glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(226, 226, 238, 1);
+}
+
+/* Grid pattern needs lower opacity on light backgrounds */
+:root[data-theme="light"] .grid-pattern {
+  background-image:
+    linear-gradient(rgba(108, 99, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108, 99, 255, 0.07) 1px, transparent 1px);
+}
+
+/* Smooth theme-color swap on body/html */
+html {
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+@keyframes pill-glide {
+  0%   { transform: scale(0.92); opacity: 0.6; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes float {
@@ -45,6 +92,18 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Modern tight-scroll: proximity snap lets the user glide between
+       section boundaries without trapping mid-section readers. */
+    scroll-snap-type: y proximity;
+    /* Global anchor offset — tighter than per-section scroll-margin. */
+    scroll-padding-top: 48px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+      scroll-snap-type: none;
+      scroll-padding-top: 0;
+    }
   }
   body {
     background-color: var(--color-bg);
@@ -61,6 +120,23 @@
   ::selection {
     background-color: var(--color-primary);
     color: white;
+  }
+  /* Anchor targets: keep tight under the 64px navbar so jumps land cleanly. */
+  section[id] {
+    scroll-margin-top: 48px;
+    /* Snap hint — proximity doesn't force snap on long content. */
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  /* Disable snap inside the chat widget so messages can scroll freely */
+  #threshold-chat,
+  #threshold-chat * {
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+  /* Tighter scroll feel: subtle momentum via overscroll-behavior */
+  html {
+    overscroll-behavior-y: contain;
   }
 }
 

@@ -1,18 +1,39 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from '@/components/common/SectionHeading';
 import ProjectCard from './ProjectCard';
 import { projects } from '@/data/projects';
 import type { Project } from '@/types';
+import {
+  projectMatchesFilter,
+  useSkillFilter,
+} from '@/hooks/useSkillFilter';
 
 type Filter = 'All' | Project['category'];
 
 const filters: Filter[] = ['All', 'AI', 'Web', 'Enterprise'];
 
+function prettyKey(key: string): string {
+  return key
+    .split(' ')
+    .map((w) => (w.length <= 2 ? w.toUpperCase() : w[0]?.toUpperCase() + w.slice(1)))
+    .join(' ');
+}
+
 export default function Projects() {
   const [filter, setFilter] = useState<Filter>('All');
+  const { selected, toggle, clear, isActive } = useSkillFilter();
 
-  const visible = projects.filter((p) => filter === 'All' || p.category === filter);
+  // Project must satisfy: category match AND skill filter match.
+  const visible = useMemo(
+    () =>
+      projects.filter((p) => {
+        const catOk = filter === 'All' || p.category === filter;
+        const skillOk = projectMatchesFilter(p.tech, selected);
+        return catOk && skillOk;
+      }),
+    [filter, selected],
+  );
 
   return (
     <section id="projects" className="relative py-20 sm:py-24">
@@ -23,7 +44,8 @@ export default function Projects() {
           subtitle="A selection of 13+ production-grade projects spanning AI, web, enterprise, and mobile."
         />
 
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+        {/* Category filters */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
           {filters.map((f) => (
             <motion.button
               key={f}
@@ -34,16 +56,83 @@ export default function Projects() {
                   ? 'gradient-bg text-white shadow-lg shadow-primary/30'
                   : 'glass text-text-muted hover:text-text'
               }`}
+              aria-pressed={filter === f}
             >
               {f}
             </motion.button>
           ))}
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {visible.map((p, i) => (
-            <ProjectCard key={p.id} project={p} delay={(i % 6) * 0.05} />
-          ))}
+        {/* Active skill-filter chips row — appears only when filters are set */}
+        <AnimatePresence>
+          {isActive && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+                <span className="text-text-muted">Filtering by skill:</span>
+                {Array.from(selected).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggle(prettyKey(key))}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/40 text-primary-light hover:bg-primary/25 transition-colors"
+                  >
+                    {prettyKey(key)}
+                    <span className="text-primary-light/80 hover:text-white" aria-hidden="true">×</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="ml-1 px-2.5 py-1 rounded-full text-text-muted hover:text-secondary-light underline-offset-2 hover:underline transition-colors"
+                >
+                  Clear all
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Project grid (or empty state) */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 min-h-[120px]">
+          <AnimatePresence mode="popLayout">
+            {visible.map((p, i) => (
+              <motion.div
+                key={p.id}
+                layout
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: Math.min(i, 6) * 0.03 }}
+              >
+                <ProjectCard project={p} delay={0} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {visible.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="col-span-full text-center py-12"
+            >
+              <p className="text-text-muted text-sm">
+                No projects match the current filters.
+              </p>
+              <button
+                type="button"
+                onClick={clear}
+                className="mt-3 text-primary-light hover:underline text-sm"
+              >
+                Clear skill filters
+              </button>
+            </motion.div>
+          )}
         </div>
 
         <p className="text-center text-text-muted text-sm mt-8">

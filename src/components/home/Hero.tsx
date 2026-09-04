@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FaGithub,
@@ -19,7 +20,94 @@ const socials = [
   { icon: FaEnvelope, href: 'mailto:bikashtalukder040@gmail.com', label: 'Email' },
 ];
 
+type CTA = 'work' | 'hire';
+
+interface CTAConfig {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  gradient: boolean;
+  external?: boolean;
+}
+
+const CTA_OPTIONS: Record<CTA, CTAConfig> = {
+  work: {
+    href: '#projects',
+    label: 'View Work',
+    icon: <FaArrowRight />,
+    gradient: true,
+  },
+  hire: {
+    href: '#contact',
+    label: 'Hire Me',
+    icon: <FaEnvelope />,
+    gradient: true,
+  },
+};
+
+/**
+ * Segmented pill CTA toggle.
+ * - Two options inside a single pill container.
+ * - The "thumb" glides between options via Framer Motion layoutId.
+ * - Hovering an option gives it a soft scale + glow.
+ * - The primary button below swaps href/label based on selection.
+ */
+function CTASegmentedToggle({
+  value,
+  onChange,
+}: {
+  value: CTA;
+  onChange: (next: CTA) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Primary action"
+      className="relative inline-flex p-1 rounded-full bg-surface/80 border border-border backdrop-blur-sm shadow-inner shadow-black/10"
+    >
+      {(['work', 'hire'] as const).map((key) => {
+        const isActive = value === key;
+        const cfg = CTA_OPTIONS[key];
+        return (
+          <button
+            key={key}
+            role="tab"
+            type="button"
+            aria-selected={isActive}
+            onClick={() => onChange(key)}
+            className={`relative z-10 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+              isActive ? 'text-white' : 'text-text-muted hover:text-text'
+            }`}
+          >
+            {isActive && (
+              <motion.span
+                layoutId="hero-cta-thumb"
+                transition={{ type: 'spring', stiffness: 480, damping: 32 }}
+                className="absolute inset-0 rounded-full gradient-bg shadow-lg shadow-primary/40"
+                aria-hidden="true"
+              />
+            )}
+            <span className="relative z-10 inline-flex items-center gap-2">
+              <span
+                className={`transition-transform duration-300 ${
+                  isActive ? 'scale-110' : 'group-hover:scale-105'
+                }`}
+              >
+                {cfg.icon}
+              </span>
+              {cfg.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Hero() {
+  const [cta, setCta] = useState<CTA>('work');
+  const active = CTA_OPTIONS[cta];
+
   return (
     <section
       id="home"
@@ -92,31 +180,43 @@ export default function Hero() {
             <span>78+ Repos · 2,280+ Contributions</span>
           </motion.div>
 
+          {/* CTA block: segmented pill toggle + the active primary CTA + CV */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-3"
+            className="mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-4"
           >
-            <a
-              href="#projects"
-              className="group inline-flex items-center gap-2 px-5 py-3 rounded-lg gradient-bg text-white font-medium shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all"
+            <CTASegmentedToggle value={cta} onChange={setCta} />
+
+            {/* Primary CTA — slides/fades when its destination changes */}
+            <motion.a
+              key={cta}
+              href={active.href}
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-full gradient-bg text-white font-medium shadow-lg shadow-primary/40 hover:shadow-primary/60 transition-shadow"
+              aria-label={active.label}
             >
-              View Projects
-              <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass text-text hover:border-primary/40 transition-all hover:-translate-y-0.5"
-            >
-              Get in Touch
-            </a>
+              {active.label}
+              <span className="transition-transform duration-300 group-hover:translate-x-1">
+                <FaArrowRight />
+              </span>
+            </motion.a>
+
+            {/* Secondary: download CV (always present) */}
             <a
               href="/assets/resume.pdf"
               download
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-secondary/40 text-secondary-light hover:bg-secondary/10 transition-all hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-full border border-secondary/40 text-secondary-light hover:bg-secondary/10 hover:border-secondary/70 transition-all hover:-translate-y-0.5"
             >
-              <FaDownload /> Download CV
+              <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                <FaDownload />
+              </span>
+              Download CV
             </a>
           </motion.div>
 
@@ -133,9 +233,11 @@ export default function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="w-10 h-10 rounded-lg glass flex items-center justify-center text-text-muted hover:text-primary-light hover:border-primary/40 transition-all hover:-translate-y-0.5"
+                className="group w-10 h-10 rounded-full glass flex items-center justify-center text-text-muted hover:text-primary-light hover:border-primary/50 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20"
               >
-                <s.icon size={18} />
+                <span className="transition-transform duration-300 group-hover:scale-110">
+                  <s.icon size={18} />
+                </span>
               </a>
             ))}
           </motion.div>
