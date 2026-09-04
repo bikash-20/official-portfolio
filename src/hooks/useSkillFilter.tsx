@@ -17,15 +17,14 @@ import {
 /*    "Java 17"    → "java"                                                    */
 /*    "HTML / CSS" → "html / css"                                              */
 /*                                                                             */
-/*  Versions, dots after acronyms, and minor punctuation are preserved.       */
-/*  This gives us the same key for "React" / "React 18" / "React.js" etc.     */
+/*  Trailing versions are stripped. Everything else (dots, slashes, casing)   */
+/*  is preserved so the same key maps "React" / "React 18" / "React.js".        */
 /* -------------------------------------------------------------------------- */
 
 export function normalizeSkill(input: string): string {
   return input
     .toLowerCase()
-    .replace(/\s+\d+(\.\d+)*$/g, '')   // trailing version: "Spring Boot 3", "Next.js 16", "Java 17"
-    .replace(/\.js$/g, '.js')          // no-op, kept for clarity
+    .replace(/\s+\d+(\.\d+)*$/g, '')   // trailing version: "Spring Boot 3", "Next.js 16"
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -90,10 +89,6 @@ export function useSkillFilter(): SkillFilterContextValue {
   }
   return ctx;
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Pure helper — keeps component code clean.                                 */
-/* -------------------------------------------------------------------------- */
 
 /** True when any project-tech string matches any selected skill key. */
 export function projectMatchesFilter(

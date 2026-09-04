@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { api } from '@/utils/api';
 
 export interface GitHubUser {
   login: string;
@@ -17,8 +16,12 @@ interface ContributionDay {
   level: 0 | 1 | 2 | 3 | 4;
 }
 
+const GITHUB_API = 'https://api.github.com';
+const USERNAME = 'bikash-20';
+const REQUEST_TIMEOUT_MS = 15_000;
+
 const fallbackUser: GitHubUser = {
-  login: 'bikash-20',
+  login: USERNAME,
   public_repos: 78,
   followers: 31,
   following: 12,
@@ -27,19 +30,35 @@ const fallbackUser: GitHubUser = {
   bio: 'Full-Stack Developer & AI Systems Builder',
 };
 
+/** Native fetch with timeout — avoids pulling axios for one endpoint. */
+async function fetchJson<T>(url: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as T;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 export function useGitHubUser() {
   const [data, setData] = useState<GitHubUser | null>(fallbackUser);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
-    api
-      .get<GitHubUser>('https://api.github.com/users/bikash-20')
-      .then((res) => {
-        if (mounted) setData(res.data);
+    fetchJson<GitHubUser>(`${GITHUB_API}/users/${USERNAME}`)
+      .then((user) => {
+        if (mounted) setData(user);
       })
-      .catch(() => {})
-      .finally(() => mounted && setLoading(false));
+      .catch(() => {
+        /* keep fallback on any failure */
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
     return () => {
       mounted = false;
     };
@@ -48,7 +67,9 @@ export function useGitHubUser() {
   return { data, loading };
 }
 
-// Generate a synthetic 53-week contribution grid (real API requires auth)
+/** Build a synthetic 53-week contribution grid.
+ *  Real GitHub contributions API requires auth, so we render a plausible
+ *  pseudo-random pattern and let the real API replace it once a token is wired. */
 function buildSyntheticGrid(): ContributionDay[][] {
   const grid: ContributionDay[][] = [];
   const today = new Date();
@@ -76,12 +97,6 @@ function buildSyntheticGrid(): ContributionDay[][] {
 }
 
 export function useGitHubContributions() {
-  const [grid, setGrid] = useState<ContributionDay[][]>(() => buildSyntheticGrid());
-
-  useEffect(() => {
-    // Real GitHub contribution API requires auth, so we keep the synthetic grid.
-    // (For an authenticated view, swap in a custom backend proxy or GH token.)
-  }, []);
-
+  const [grid] = useState<ContributionDay[][]>(() => buildSyntheticGrid());
   return { grid };
 }

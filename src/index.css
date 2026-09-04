@@ -92,17 +92,15 @@ html {
 
 @layer base {
   html {
-    scroll-behavior: smooth;
-    /* Modern tight-scroll: proximity snap lets the user glide between
-       section boundaries without trapping mid-section readers. */
-    scroll-snap-type: y proximity;
-    /* Global anchor offset — tighter than per-section scroll-margin. */
+    /* Smooth-scroll behavior + reduced-motion opt-out are handled by the
+       useSmoothScroll hook (lerped target, settle-to-section). CSS scroll-snap
+       is intentionally *disabled* to avoid fighting the hook. */
     scroll-padding-top: 48px;
+    overscroll-behavior-y: contain;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
-      scroll-snap-type: none;
       scroll-padding-top: 0;
     }
   }
@@ -122,22 +120,9 @@ html {
     background-color: var(--color-primary);
     color: white;
   }
-  /* Anchor targets: keep tight under the 64px navbar so jumps land cleanly. */
+  /* Anchor targets — leave 48px clear of the sticky navbar. */
   section[id] {
     scroll-margin-top: 48px;
-    /* Snap hint — proximity doesn't force snap on long content. */
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
-  /* Disable snap inside the chat widget so messages can scroll freely */
-  #threshold-chat,
-  #threshold-chat * {
-    scroll-snap-align: none;
-    scroll-snap-stop: normal;
-  }
-  /* Tighter scroll feel: subtle momentum via overscroll-behavior */
-  html {
-    overscroll-behavior-y: contain;
   }
 }
 

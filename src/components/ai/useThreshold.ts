@@ -27,23 +27,22 @@ export interface CascadeTier {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Cascade — 6 free OpenRouter tiers (verified Sep 2026)                     */
+/*  Cascade — 10 free OpenRouter tiers (verified Sep 2026)                    */
 /* -------------------------------------------------------------------------- */
 
 export const CASCADE: readonly CascadeTier[] = [
-  // Real free models live on OpenRouter right now (probed Sep 2026 against /api/v1/models).
-  // Order = preference. 404/429/5xx on any tier causes a cascade to the next.
-  // First hit wins. Rotate or extend as OpenRouter adds/removes tiers.
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'llama-3.3-70b', provider: 'Meta',                contextK: 128  },
-  { id: 'meta-llama/llama-3.1-8b-instruct:free',  label: 'llama-3.1-8b',  provider: 'Meta',                contextK: 128  },
-  { id: 'inclusionai/ling-3.0-flash-fin:free',    label: 'ling-flash-fin', provider: 'Inclusion AI',       contextK: 256  },
-  { id: 'google/gemma-4-31b-it:free',             label: 'gemma-4-31b',   provider: 'Google',              contextK: 256  },
-  { id: 'minimax/minimax-m3:free',                label: 'minimax-m3',    provider: 'MiniMax',             contextK: 1024 },
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free', label: 'nemotron-3-super', provider: 'NVIDIA',           contextK: 256  },
-  { id: 'thinkingmachines/inkling:free',          label: 'inkling',       provider: 'Thinking Machines',   contextK: 1024 },
-  { id: 'z-ai/glm-5.2:free',                      label: 'glm-5.2',       provider: 'Z.ai',                contextK: 256  },
-  { id: 'poolside/laguna-xs-2.1:free',            label: 'laguna-xs',     provider: 'Poolside',            contextK: 64   },
-  { id: 'cohere/north-mini-code:free',            label: 'north-mini-code', provider: 'Cohere',            contextK: 32   },
+  // First hit wins. Any 404/429/5xx cascades to the next tier.
+  // Rotate or extend as OpenRouter adds/removes tiers.
+  { id: 'meta-llama/llama-3.3-70b-instruct:free',   label: 'llama-3.3-70b',   provider: 'Meta',              contextK: 128  },
+  { id: 'meta-llama/llama-3.1-8b-instruct:free',    label: 'llama-3.1-8b',    provider: 'Meta',              contextK: 128  },
+  { id: 'inclusionai/ling-3.0-flash-fin:free',      label: 'ling-flash-fin',  provider: 'Inclusion AI',      contextK: 256  },
+  { id: 'google/gemma-4-31b-it:free',               label: 'gemma-4-31b',     provider: 'Google',            contextK: 256  },
+  { id: 'minimax/minimax-m3:free',                  label: 'minimax-m3',      provider: 'MiniMax',           contextK: 1024 },
+  { id: 'nvidia/nemotron-3-super-120b-a12b:free',   label: 'nemotron-3-super',provider: 'NVIDIA',            contextK: 256  },
+  { id: 'thinkingmachines/inkling:free',            label: 'inkling',         provider: 'Thinking Machines', contextK: 1024 },
+  { id: 'z-ai/glm-5.2:free',                        label: 'glm-5.2',         provider: 'Z.ai',              contextK: 256  },
+  { id: 'poolside/laguna-xs-2.1:free',              label: 'laguna-xs',       provider: 'Poolside',          contextK: 64   },
+  { id: 'cohere/north-mini-code:free',              label: 'north-mini-code', provider: 'Cohere',            contextK: 32   },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -51,7 +50,7 @@ export const CASCADE: readonly CascadeTier[] = [
 /* -------------------------------------------------------------------------- */
 
 const SYSTEM_PROMPT = `You are Threshold — the AI assistant embedded in Bikash Talukder's portfolio website.
-You run on a 6-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
+You run on a 10-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
 Your job is to answer questions about Bikash Talukder — a Full-Stack Developer & AI Systems Builder.
 
 Context about Bikash:
@@ -120,7 +119,7 @@ Rules:
 - If you don't know something, say "I don't have that information, but you can ask Bikash directly!"`;
 
 /* -------------------------------------------------------------------------- */
-/*  Hook                                                                      */
+/*  Constants + helpers                                                       */
 /* -------------------------------------------------------------------------- */
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -132,17 +131,11 @@ const WELCOME_MESSAGE: ChatMessage = {
 
 const PER_TIER_TIMEOUT_MS = 30_000;
 
+/** Transient → cascade to next tier. Fatal → stop and surface. */
 function isTransientFailure(status: number): boolean {
-  // Transient: cascade to next tier
-  if (status === 429) return true;       // rate-limited
-  if (status === 404) return true;       // model unavailable / retired
-  if (status === 408) return true;       // request timeout
-  if (status === 502 || status === 503 || status === 504) return true;
-  if (status >= 500 && status < 600) return true;
-  // Fatal: stop cascading and surface to user
-  //   400 = bad request (won't get better next tier)
-  //   401 / 403 = auth error (key wrong)
-  return false;
+  return status === 429 || status === 404 || status === 408
+      || status === 502 || status === 503 || status === 504
+      || (status >= 500 && status < 600);
 }
 
 function describeError(status: number): string {
@@ -153,6 +146,11 @@ function describeError(status: number): string {
   return `HTTP ${status}`;
 }
 
+/**
+ * Strip / transliterate anything outside ISO-8859-1 from a header value.
+ * `fetch` throws "String contains non ISO-8859-1 code point" if a header has
+ * chars like em-dash (—), smart quotes, emoji, or non-Latin scripts.
+ */
 function asciiHeader(value: string): string {
   try {
     const bytes = new TextEncoder().encode(value);
@@ -167,6 +165,7 @@ function asciiHeader(value: string): string {
   }
 }
 
+// Monotonic, unique-enough id; we don't need cryptographic uniqueness.
 let _idCounter = 0;
 function newId(): string {
   _idCounter += 1;
@@ -192,11 +191,11 @@ async function* readSseStream(
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      // Split on newlines; SSE messages are terminated by blank line.
-      let idx: number;
-      while ((idx = buffer.indexOf('\n')) !== -1) {
-        const line = buffer.slice(0, idx).trimEnd();
-        buffer = buffer.slice(idx + 1);
+      // SSE messages are newline-delimited; an empty line ends a message.
+      let nl: number;
+      while ((nl = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, nl).trimEnd();
+        buffer = buffer.slice(nl + 1);
         if (!line.startsWith('data:')) continue;
         const payload = line.slice(5).trim();
         if (payload === '[DONE]') return;
@@ -206,7 +205,7 @@ async function* readSseStream(
           const delta: string | undefined = json?.choices?.[0]?.delta?.content;
           if (delta) yield delta;
         } catch {
-          // Ignore malformed JSON lines — they're harmless.
+          /* malformed line — harmless */
         }
       }
     }
@@ -214,6 +213,35 @@ async function* readSseStream(
     try { reader.releaseLock(); } catch { /* noop */ }
   }
 }
+
+const NO_KEY_BODY =
+  "**API key not configured.**\n\n" +
+  "Add your free OpenRouter API key to `.env` at the project root:\n\n" +
+  "```\nVITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here\n```\n\n" +
+  "Then **restart the dev server** (`npm run dev`) so Vite picks up the new env file.\n\n" +
+  "Get a free key at https://openrouter.ai/keys";
+
+const WRONG_PREFIX_BODY =
+  "**Wrong env variable name.**\n\n" +
+  "Vite only exposes env vars prefixed with `VITE_` to the browser. " +
+  "Rename your key in `.env`:\n\n" +
+  "```\n# won't work - not exposed to client\n" +
+  "OPENROUTER_API_KEY=...\n\n" +
+  "# correct - Vite exposes this to the browser\n" +
+  "VITE_OPENROUTER_API_KEY=...\n```\n\n" +
+  "Then **restart the dev server** (`npm run dev`).";
+
+const OVERLOADED_BODY = (
+  fatalSummary: string,
+  detail: string,
+): string =>
+  `**Threshold is overloaded right now.**\n\n${fatalSummary}\n\n` +
+  (detail ? `Last attempts:\n${detail}\n\n` : '') +
+  `Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com`;
+
+/* -------------------------------------------------------------------------- */
+/*  Hook                                                                      */
+/* -------------------------------------------------------------------------- */
 
 export interface UseThresholdReturn {
   messages: ChatMessage[];
@@ -240,29 +268,10 @@ export function useThreshold(): UseThresholdReturn {
   const send = useCallback(async (userText: string) => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
+    // ── No key path ────────────────────────────────────────────────────────
     if (!apiKey) {
-      const envKeys = Object.keys(import.meta.env);
-      const hasUnprefixed = envKeys.some((k) => k === 'OPENROUTER_API_KEY');
-
-      let body =
-        "**API key not configured.**\n\n" +
-        "Add your free OpenRouter API key to `.env` at the project root:\n\n" +
-        "```\nVITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here\n```\n\n" +
-        "Then **restart the dev server** (`npm run dev`) so Vite picks up the new env file.\n\n" +
-        "Get a free key at https://openrouter.ai/keys";
-
-      if (hasUnprefixed) {
-        body =
-          "**Wrong env variable name.**\n\n" +
-          "Vite only exposes env vars prefixed with `VITE_` to the browser. " +
-          "Rename your key in `.env`:\n\n" +
-          "```\n# won't work - not exposed to client\n" +
-          "OPENROUTER_API_KEY=...\n\n" +
-          "# correct - Vite exposes this to the browser\n" +
-          "VITE_OPENROUTER_API_KEY=...\n```\n\n" +
-          "Then **restart the dev server** (`npm run dev`).";
-      }
-
+      const hasUnprefixed = Object.keys(import.meta.env).some((k) => k === 'OPENROUTER_API_KEY');
+      const body = hasUnprefixed ? WRONG_PREFIX_BODY : NO_KEY_BODY;
       setMessages((prev) => [
         ...prev,
         { id: newId(), role: 'user', content: userText },
@@ -271,49 +280,56 @@ export function useThreshold(): UseThresholdReturn {
       return;
     }
 
-    // Cancel any prior in-flight stream
+    // Cancel any prior in-flight stream and reset progress UI.
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const userMsg: ChatMessage = { id: newId(), role: 'user', content: userText };
     const assistantId = newId();
-    const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '', streaming: true };
-
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    setMessages((prev) => [
+      ...prev,
+      { id: newId(), role: 'user', content: userText },
+      { id: assistantId, role: 'assistant', content: '', streaming: true },
+    ]);
     setLoading(true);
     setActiveTier(0);
     setTriedTiers(0);
 
-    const conversation: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    // Truncate context window to last 6 turns for prompt-budget safety.
+    const conversation = [
+      { role: 'system' as const, content: SYSTEM_PROMPT },
       ...messages.slice(-6).filter((m) => m.role !== 'system'),
-      { role: 'user', content: userText },
+      { role: 'user' as const, content: userText },
     ];
 
     const failures: { tier: CascadeTier; reason: string }[] = [];
     let lastFatal: { tier: CascadeTier; reason: string } | null = null;
-    let servedBy: CascadeTier | undefined;
+    let userCancelled = false;
+    let tokensReceived = false;
 
     const appendDelta = (delta: string) => {
+      tokensReceived = true;
       setMessages((prev) =>
         prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
       );
     };
 
-    const finalizeAssistant = (tier: CascadeTier, latencyMs: number) => {
-      servedBy = tier;
+    const finalizeAssistant = (tier: CascadeTier | undefined, latencyMs?: number) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
-            ? { ...m, streaming: false, servedBy: tier, latencyMs }
+            ? { ...m, streaming: false, ...(tier ? { servedBy: tier, latencyMs } : {}) }
             : m,
         ),
       );
     };
 
-    outer: for (let i = 0; i < CASCADE.length; i++) {
-      if (controller.signal.aborted) break;
+    // ── Cascade ────────────────────────────────────────────────────────────
+    for (let i = 0; i < CASCADE.length; i++) {
+      if (controller.signal.aborted) {
+        userCancelled = true;
+        break;
+      }
       const tier = CASCADE[i];
       setActiveTier(i);
       setTriedTiers(i);
@@ -351,87 +367,61 @@ export function useThreshold(): UseThresholdReturn {
           continue;
         }
 
-        // Read SSE stream, appending deltas as they arrive.
-        let receivedAny = false;
         for await (const delta of readSseStream(res.body, controller.signal)) {
-          receivedAny = true;
           appendDelta(delta);
-          // Once we get the first token, lock in this tier — stop counting it as "trying".
-          if (activeTier < 0) setActiveTier(i);
         }
 
-        if (receivedAny) {
+        if (tokensReceived) {
+          // We committed tokens under a previous tier's identity (the assistant message
+          // is already on-screen with content). Mark that tier as the server.
           const latencyMs = Math.round(performance.now() - startedAt);
           finalizeAssistant(tier, latencyMs);
-          window.clearTimeout(timer);
-          break outer;
+          break;
         }
 
-        // Stream opened but produced nothing — treat as transient.
+        // Stream opened, returned cleanly, but no tokens. Treat as transient.
         failures.push({ tier, reason: 'empty stream' });
       } catch (err) {
-        if (controller.signal.aborted && receivedSomethingThisRequest()) {
-          // User clicked stop — keep whatever was streamed, finalize with no tier metadata.
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId ? { ...m, streaming: false } : m,
-            ),
-          );
-          window.clearTimeout(timer);
-          break outer;
+        const aborted = controller.signal.aborted;
+        const reason = aborted
+          ? `timeout (${PER_TIER_TIMEOUT_MS / 1000}s)`
+          : err instanceof Error
+            ? err.message
+            : 'network error';
+        // If the user clicked Stop and we already streamed something, keep it
+        // (without tier metadata) and bail. Otherwise record the failure.
+        if (aborted && tokensReceived) {
+          userCancelled = true;
+          break;
         }
-        const reason =
-          err instanceof DOMException && err.name === 'AbortError'
-            ? `timeout (${PER_TIER_TIMEOUT_MS / 1000}s)`
-            : err instanceof Error
-              ? err.message
-              : 'network error';
         failures.push({ tier, reason });
       } finally {
         window.clearTimeout(timer);
       }
     }
 
-    function receivedSomethingThisRequest(): boolean {
-      // We rely on closure of assistantId; reading current state would require
-      // a ref. For simplicity, the caller checks abortRef.current after.
-      return abortRef.current?.signal.aborted === true;
+    // ── Surface outcome if we never finalized above ───────────────────────
+    if (!userCancelled) {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        const stillStreaming = last && last.id === assistantId && last.streaming;
+        if (!stillStreaming) return prev;
+        const fatalSummary = lastFatal
+          ? `Stopped at **${lastFatal.tier.label}** (${lastFatal.tier.provider}): ${lastFatal.reason}.`
+          : failures.length > 0
+            ? `Tried ${failures.length} of ${CASCADE.length} tiers — all rate-limited or unreachable.`
+            : 'No tiers were attempted.';
+        const detail = failures.slice(-3).map((f) => `• \`${f.tier.label}\` — ${f.reason}`).join('\n');
+        return prev.map((m) =>
+          m.id === assistantId ? { ...m, streaming: false, content: OVERLOADED_BODY(fatalSummary, detail) } : m,
+        );
+      });
     }
-
-    // If we exited without finalizing (all tiers failed or fatal stop), append an error.
-    setMessages((prev) => {
-      const last = prev[prev.length - 1];
-      const stillStreaming = last && last.id === assistantId && last.streaming;
-      if (!stillStreaming) return prev;
-      const fatalSummary = lastFatal
-        ? `Stopped at **${lastFatal.tier.label}** (${lastFatal.tier.provider}): ${lastFatal.reason}.`
-        : failures.length > 0
-          ? `Tried ${failures.length} of ${CASCADE.length} tiers — all rate-limited or unreachable.`
-          : 'No tiers were attempted.';
-      const detail = failures
-        .slice(-3)
-        .map((f) => `• \`${f.tier.label}\` — ${f.reason}`)
-        .join('\n');
-      return prev.map((m) =>
-        m.id === assistantId
-          ? {
-              ...m,
-              streaming: false,
-              content:
-                `**Threshold is overloaded right now.**\n\n${fatalSummary}\n\n` +
-                (detail ? `Last attempts:\n${detail}\n\n` : '') +
-                `Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com`,
-            }
-          : m,
-      );
-    });
 
     setLoading(false);
     setActiveTier(-1);
     setTriedTiers(0);
     abortRef.current = null;
-    // Mark unused to satisfy strict TS in some configs
-    void servedBy;
   }, [messages]);
 
   const clear = useCallback(() => {

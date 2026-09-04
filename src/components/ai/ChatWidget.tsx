@@ -59,6 +59,7 @@ export default function ChatWidget({ open, onClose }: Props) {
 
   return (
     <motion.div
+      id="threshold-chat"
       role="dialog"
       aria-label="Threshold AI chat"
       aria-modal="false"

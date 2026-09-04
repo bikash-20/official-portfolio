@@ -9,8 +9,10 @@ import Interests from '@/components/interests/Interests';
 import Contact from '@/components/contact/Contact';
 import ChatBubble from '@/components/ai/ChatBubble';
 import { SkillFilterProvider } from '@/hooks/useSkillFilter';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 
 export default function App() {
+  useSmoothScroll();
   return (
     <SkillFilterProvider>
       <div className="min-h-screen bg-bg text-text font-body selection:bg-primary selection:text-white">
