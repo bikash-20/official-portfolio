@@ -1,0 +1,118 @@
+import type { SkillCategory } from '@/types';
+
+export const skillCategories: SkillCategory[] = [
+  {
+    name: 'Frontend',
+    icon: 'Palette',
+    color: '#6C63FF',
+    skills: [
+      { name: 'React 18', level: 92 },
+      { name: 'Next.js 16', level: 85 },
+      { name: 'TypeScript', level: 90 },
+      { name: 'Tailwind CSS', level: 95 },
+      { name: 'Vite', level: 90 },
+      { name: 'Vanilla JS', level: 88 },
+      { name: 'Thymeleaf', level: 75 },
+      { name: 'HTML / CSS', level: 95 },
+    ],
+  },
+  {
+    name: 'Backend',
+    icon: 'Gear',
+    color: '#FF6584',
+    skills: [
+      { name: 'Spring Boot 3', level: 88 },
+      { name: 'FastAPI', level: 90 },
+      { name: 'Node.js', level: 87 },
+      { name: 'REST APIs', level: 92 },
+      { name: 'WebSockets', level: 80 },
+    ],
+  },
+  {
+    name: 'Languages',
+    icon: 'Code',
+    color: '#00C853',
+    skills: [
+      { name: 'Java', level: 90 },
+      { name: 'Python', level: 92 },
+      { name: 'TypeScript', level: 90 },
+      { name: 'JavaScript', level: 92 },
+      { name: 'Go', level: 70 },
+      { name: 'C++', level: 78 },
+      { name: 'C', level: 75 },
+    ],
+  },
+  {
+    name: 'Database',
+    icon: 'Database',
+    color: '#FFB300',
+    skills: [
+      { name: 'PostgreSQL', level: 88 },
+      { name: 'SQLite', level: 85 },
+      { name: 'H2', level: 80 },
+      { name: 'Redis', level: 75 },
+      { name: 'Supabase', level: 85 },
+    ],
+  },
+  {
+    name: 'DevOps',
+    icon: 'Rocket',
+    color: '#00B0FF',
+    skills: [
+      { name: 'Docker', level: 80 },
+      { name: 'Cloudflare', level: 85 },
+      { name: 'Render', level: 85 },
+      { name: 'Vercel', level: 92 },
+      { name: 'GitHub Actions', level: 82 },
+    ],
+  },
+  {
+    name: 'AI / ML',
+    icon: 'Robot',
+    color: '#E91E63',
+    skills: [
+      { name: 'Ollama', level: 90 },
+      { name: 'OpenRouter', level: 92 },
+      { name: 'Whisper', level: 85 },
+      { name: 'Piper', level: 78 },
+      { name: 'RAG', level: 88 },
+      { name: 'LangChain', level: 80 },
+      { name: 'PyTorch', level: 82 },
+      { name: 'NumPy', level: 88 },
+    ],
+  },
+  {
+    name: 'Architecture',
+    icon: 'Blocks',
+    color: '#9C27B0',
+    skills: [
+      { name: 'Microservices', level: 85 },
+      { name: 'Event Sourcing', level: 78 },
+      { name: 'CQRS', level: 78 },
+      { name: 'Saga Pattern', level: 75 },
+    ],
+  },
+  {
+    name: 'Security',
+    icon: 'Lock',
+    color: '#F44336',
+    skills: [
+      { name: 'Spring Security', level: 82 },
+      { name: 'JWT', level: 88 },
+      { name: 'OAuth2', level: 80 },
+      { name: 'mTLS', level: 72 },
+      { name: 'RBAC', level: 85 },
+    ],
+  },
+  {
+    name: 'Testing',
+    icon: 'Flask',
+    color: '#3F51B5',
+    skills: [
+      { name: 'JUnit', level: 85 },
+      { name: 'Vitest', level: 85 },
+      { name: 'Playwright', level: 75 },
+      { name: 'k6', level: 72 },
+    ],
+  },
+];
