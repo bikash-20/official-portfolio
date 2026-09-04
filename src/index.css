@@ -8,23 +8,23 @@
 /*  `border-border`, etc. utilities, while also producing `--color-*` CSS     */
 /*  vars that we can override at runtime via `useTheme.ts`.                    */
 /*                                                                             */
-/*  Values below are the Briar Rose default. The hook in useTheme.ts sets     */
-/*  them inline on <html> as soon as it mounts, switching palettes without     */
-/*  rebuilding Tailwind's emitted utility classes.                             */
+/*  Values below are the Midnight default (deep teal + champagne). The hook   */
+/*  in useTheme.ts sets them inline on <html> as soon as it mounts, switching */
+/*  palettes without rebuilding Tailwind's emitted utility classes.            */
 /* -------------------------------------------------------------------------- */
 @theme {
-  --color-primary: #BE7585;
-  --color-primary-light: #E1A1AD;
-  --color-primary-dark: #8E5463;
-  --color-secondary: #5B392F;
-  --color-secondary-light: #7D5648;
-  --color-bg: #0F0807;
-  --color-bg-2: #080404;
-  --color-surface: #1A0F0E;
-  --color-surface-2: #261816;
-  --color-text: #F8CDD4;
-  --color-text-muted: #A88594;
-  --color-border: #33201F;
+  --color-primary: #0E7490;
+  --color-primary-light: #22D3EE;
+  --color-primary-dark: #0E4F6E;
+  --color-secondary: #D4AF7A;
+  --color-secondary-light: #E8C9A0;
+  --color-bg: #03101A;
+  --color-bg-2: #01070D;
+  --color-surface: #0A1F2C;
+  --color-surface-2: #0F2C3D;
+  --color-text: #F4ECD8;
+  --color-text-muted: #8AA4B0;
+  --color-border: #15384A;
   --color-success: #00C853;
   --color-warning: #FFB300;
   --color-info: #00B0FF;
@@ -43,23 +43,14 @@
 
 @layer base {
   html {
-    /* Native smooth scrolling — every anchor link / programmatic scrollTo /
-       keyboard nav glides instead of jumping. `overscroll-behavior-y: contain`
-       keeps the bounce from bleeding into the parent document. */
-    scroll-behavior: smooth;
-    /* Soft section-by-section snap on release. `proximity` doesn't trap
-       readers mid-section — you can still scroll freely through long
-       content; the snap only fires when you've released near a section top. */
-    scroll-snap-type: y proximity;
-    /* scroll-padding-top is set by useSmoothScroll to match navbar height,
-       with a sensible fallback here. */
+    /* Lenis takes over scrolling via JS — see useSmoothScroll.ts.
+       `overscroll-behavior-y: contain` keeps the bounce from bleeding into
+       the parent document. */
     scroll-padding-top: 64px;
     overscroll-behavior-y: contain;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
-      scroll-behavior: auto;
-      scroll-snap-type: none;
       scroll-padding-top: 0;
     }
   }
@@ -80,17 +71,27 @@
     background-color: var(--color-primary);
     color: white;
   }
-  /* Each section snaps to its top when the user releases near it. */
   section[id] {
     scroll-margin-top: 64px;
-    scroll-snap-align: start;
   }
-  /* But the chat widget's scrollable list must NOT snap — let users scroll
-     freely inside messages. */
-  #threshold-chat,
-  #threshold-chat * {
-    scroll-snap-align: none;
-  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Lenis — recommended CSS hooks for the smooth-scroll library.              */
+/*  See https://github.com/darkroomengineering/lenis                           */
+/* -------------------------------------------------------------------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 @layer utilities {

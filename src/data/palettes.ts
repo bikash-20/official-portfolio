@@ -204,7 +204,7 @@ export const PALETTES: readonly Palette[] = [
 
 export type PaletteId = (typeof PALETTES)[number]['id'];
 
-export const DEFAULT_PALETTE: PaletteId = 'briar-rose';
+export const DEFAULT_PALETTE: PaletteId = 'midnight';
 
 export function findPalette(id: string | null | undefined): Palette {
   if (!id) return PALETTES[0];

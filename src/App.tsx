@@ -1,3 +1,4 @@
+import { ReactLenis } from 'lenis/react';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import Hero from '@/components/home/Hero';
@@ -15,20 +16,22 @@ export default function App() {
   useSmoothScroll();
   return (
     <SkillFilterProvider>
-      <div className="min-h-screen bg-bg text-text font-body selection:bg-primary selection:text-white">
-        <Navbar />
-        <main>
-          <Hero />
-          <SkillsGrid />
-          <Projects />
-          <Dashboard />
-          <Achievements />
-          <Interests />
-          <Contact />
-        </main>
-        <Footer />
-        <ChatBubble />
-      </div>
+      <ReactLenis root>
+        <div className="min-h-screen bg-bg text-text font-body selection:bg-primary selection:text-white">
+          <Navbar />
+          <main>
+            <Hero />
+            <SkillsGrid />
+            <Projects />
+            <Dashboard />
+            <Achievements />
+            <Interests />
+            <Contact />
+          </main>
+          <Footer />
+          <ChatBubble />
+        </div>
+      </ReactLenis>
     </SkillFilterProvider>
   );
 }

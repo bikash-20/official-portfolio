@@ -1,35 +1,30 @@
 import { useEffect } from 'react';
+import { useLenis } from 'lenis/react';
 
 /**
- * Smooth scrolling — section-by-section momentum.
+ * Smooth scrolling — Lenis-driven inertia scroll.
  *
- * The previous hand-rolled rAF lerp had two interacting bugs that surfaced in
- * the field:
- *   1. `window.scrollTo` was patched to re-enter the lerp, but the patched
- *      version also reset `current`, which immediately zeroed any progress the
- *      rAF loop had built up.
- *   2. `prefers-reduced-motion` opt-out left the listener registered but the
- *      rAF loop unscheduled, so on some browsers wheel events fired
- *      `preventDefault` but never scrolled.
+ * Lenis (by Studio Freight) gives the page that heavy, lerped,
+ * momentum-based feel without intercepting wheel events ourselves. The
+ * `<ReactLenis root>` wrapper in App.tsx mounts a single global Lenis
+ * instance tied to `window`; this hook is just the side effects that
+ * ride on top of it:
  *
- * This implementation goes back to first principles:
- *   - Use the browser's native smooth scrolling via CSS.
- *   - Add a soft CSS scroll-snap that lands on each section's top after release.
- *   - Stop intercepting wheel events entirely — let the browser handle them.
- *
- * Result: scroll feels modern and "slow" (CSS transition handles the easing),
- * wheel/keyboard/touch all work natively, no JS hot loop, zero jank.
- *
- * The hook still exists so `App.tsx` keeps a single import; it now just
- * manages scroll-padding so anchor-link jumps clear the navbar.
+ *   1. Keep `scroll-padding-top` in sync with the navbar height so
+ *      `<a href="#id">` jumps (which fall back to native scroll when
+ *      Lenis is stopped) clear the navbar.
+ *   2. Honor `prefers-reduced-motion: reduce` by stopping Lenis entirely
+ *      and letting the browser handle scroll natively.
  */
 
 export function useSmoothScroll(): void {
+  const lenis = useLenis();
+
+  // Sync scroll-padding-top with the navbar's actual height. This is used
+  // by native `<a href="#section">` jumps (and by Lenis's scrollTo offset
+  // when needed) so anchored sections clear the sticky navbar.
   useEffect(() => {
-    // Set scroll-padding dynamically so the offset matches whatever the
-    // navbar's actual height turns out to be (avoids per-section scroll-margin
-    // drift when navbar layout changes).
-    const nav = document.querySelector('header nav');
+    const nav = document.querySelector<HTMLElement>('header nav');
     if (!nav) return;
 
     const sync = () => {
@@ -46,4 +41,19 @@ export function useSmoothScroll(): void {
       window.removeEventListener('resize', sync);
     };
   }, []);
+
+  // Reduced-motion opt-out — stop Lenis entirely and let the browser
+  // handle scroll. We re-evaluate on the media-query change so a user
+  // toggling the OS setting at runtime gets the right behavior.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => {
+      if (!lenis) return;
+      if (mq.matches) lenis.stop();
+      else lenis.start();
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [lenis]);
 }
