@@ -27,12 +27,15 @@ export interface CascadeTier {
 /* -------------------------------------------------------------------------- */
 
 export const CASCADE: readonly CascadeTier[] = [
-  { id: 'minimax/minimax-m3:free',           label: 'minimax-m3',     provider: 'MiniMax',            contextK: 1024 },
-  { id: 'z-ai/glm-5.2:free',                 label: 'glm-5.2',        provider: 'Z.ai',               contextK: 256  },
-  { id: 'thinkingmachines/inkling:free',     label: 'inkling',        provider: 'Thinking Machines',  contextK: 1024 },
-  { id: 'google/gemma-4-31b-it:free',        label: 'gemma-4-31b',    provider: 'Google',             contextK: 256  },
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free', label: 'nemotron-3-super', provider: 'NVIDIA',        contextK: 256  },
-  { id: 'openrouter/free',                   label: 'openrouter/free', provider: 'OpenRouter',         contextK: 200  },
+  // Tier order = preference. First hit wins. Free models rotate frequently on
+  // OpenRouter, so swap any 404/410 here for the current equivalent in
+  // https://openrouter.ai/models?max_price=0
+  { id: 'meta-llama/llama-3.1-8b-instruct:free',             label: 'llama-3.1-8b',  provider: 'Meta',     contextK: 128 },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free',            label: 'llama-3.3-70b', provider: 'Meta',     contextK: 128 },
+  { id: 'google/gemini-2.0-flash-exp:free',                 label: 'gemini-2.0-flash', provider: 'Google', contextK: 1024 },
+  { id: 'mistralai/mistral-7b-instruct:free',                label: 'mistral-7b',    provider: 'Mistral',  contextK: 32 },
+  { id: 'qwen/qwen-2.5-72b-instruct:free',                  label: 'qwen-2.5-72b',  provider: 'Alibaba',  contextK: 128 },
+  { id: 'openai/gpt-oss-20b:free',                          label: 'gpt-oss-20b',   provider: 'OpenAI',   contextK: 128 },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -132,6 +135,27 @@ function describeError(status: number, body: string): string {
   return `HTTP ${status}`;
 }
 
+/**
+ * Strip / transliterate anything outside ISO-8859-1 from a header value.
+ * `fetch` throws "String contains non ISO-8859-1 code point" if a header has
+ * chars like em-dash (—), smart quotes, emoji, or non-Latin scripts.
+ */
+function asciiHeader(value: string): string {
+  try {
+    // Encode as UTF-8 bytes, then read each byte back as a Latin-1 char.
+    // Non-ASCII bytes become "?" — safe for HTTP headers.
+    const bytes = new TextEncoder().encode(value);
+    let out = '';
+    for (let i = 0; i < bytes.length; i++) {
+      const b = bytes[i];
+      out += b < 0x80 ? String.fromCharCode(b) : '?';
+    }
+    return out;
+  } catch {
+    return value.replace(/[^\x20-\x7E]/g, '?');
+  }
+}
+
 export interface UseThresholdReturn {
   messages: ChatMessage[];
   loading: boolean;
@@ -216,8 +240,10 @@ export function useThreshold(): UseThresholdReturn {
           headers: {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'Bikash Talukder Portfolio — Threshold',
+            // ASCII-encode header values — non-ISO-8859-1 chars (em-dash, smart quotes,
+            // emoji) cause `fetch` to throw "String contains non ISO-8859-1 code point".
+            'HTTP-Referer': asciiHeader(window.location.origin),
+            'X-Title': asciiHeader('Bikash Talukder Portfolio - Threshold'),
           },
           body: JSON.stringify({
             model: tier.id,
