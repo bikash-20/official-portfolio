@@ -182,18 +182,15 @@ export default function Hero() {
           </div>
 
           {/* Editorial caption beneath the image */}
-          <figcaption className="mt-5 flex items-baseline justify-between gap-4 px-1">
+          <figcaption className="mt-5 px-1">
             <div className="font-heading text-sm sm:text-base font-semibold tracking-[0.18em] uppercase text-text">
               Bikash Talukder
             </div>
-            <div className="font-mono text-[11px] sm:text-xs tracking-[0.22em] text-text-muted">
-              MMXXVI / 01
-            </div>
+            <div className="mt-1.5 h-px w-full bg-border" />
+            <p className="mt-2 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-text-muted">
+              Full-Stack Developer · AI Systems Builder · Sylhet, BD
+            </p>
           </figcaption>
-          <div className="mt-1.5 h-px w-full bg-border" />
-          <p className="mt-2 px-1 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-text-muted">
-            Full-Stack Developer · AI Systems Builder · Sylhet, BD
-          </p>
         </motion.figure>
       </div>
 
