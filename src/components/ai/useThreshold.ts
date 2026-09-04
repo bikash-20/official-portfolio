@@ -31,14 +31,19 @@ export interface CascadeTier {
 /* -------------------------------------------------------------------------- */
 
 export const CASCADE: readonly CascadeTier[] = [
-  // Real free models currently live on OpenRouter (verified via /api/v1/models).
+  // Real free models live on OpenRouter right now (probed Sep 2026 against /api/v1/models).
+  // Order = preference. 404/429/5xx on any tier causes a cascade to the next.
   // First hit wins. Rotate or extend as OpenRouter adds/removes tiers.
-  { id: 'meta-llama/llama-3.1-8b-instruct:free',                  label: 'llama-3.1-8b',         provider: 'Meta',                contextK: 128  },
-  { id: 'minimax/minimax-m3:free',                                label: 'minimax-m3',           provider: 'MiniMax',             contextK: 1024 },
-  { id: 'google/gemma-4-31b-it:free',                             label: 'gemma-4-31b',          provider: 'Google',              contextK: 256  },
-  { id: 'z-ai/glm-5.2:free',                                      label: 'glm-5.2',              provider: 'Z.ai',                contextK: 256  },
-  { id: 'thinkingmachines/inkling:free',                          label: 'inkling',              provider: 'Thinking Machines',   contextK: 1024 },
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free',                 label: 'nemotron-3-super',     provider: 'NVIDIA',              contextK: 256  },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'llama-3.3-70b', provider: 'Meta',                contextK: 128  },
+  { id: 'meta-llama/llama-3.1-8b-instruct:free',  label: 'llama-3.1-8b',  provider: 'Meta',                contextK: 128  },
+  { id: 'inclusionai/ling-3.0-flash-fin:free',    label: 'ling-flash-fin', provider: 'Inclusion AI',       contextK: 256  },
+  { id: 'google/gemma-4-31b-it:free',             label: 'gemma-4-31b',   provider: 'Google',              contextK: 256  },
+  { id: 'minimax/minimax-m3:free',                label: 'minimax-m3',    provider: 'MiniMax',             contextK: 1024 },
+  { id: 'nvidia/nemotron-3-super-120b-a12b:free', label: 'nemotron-3-super', provider: 'NVIDIA',           contextK: 256  },
+  { id: 'thinkingmachines/inkling:free',          label: 'inkling',       provider: 'Thinking Machines',   contextK: 1024 },
+  { id: 'z-ai/glm-5.2:free',                      label: 'glm-5.2',       provider: 'Z.ai',                contextK: 256  },
+  { id: 'poolside/laguna-xs-2.1:free',            label: 'laguna-xs',     provider: 'Poolside',            contextK: 64   },
+  { id: 'cohere/north-mini-code:free',            label: 'north-mini-code', provider: 'Cohere',            contextK: 32   },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -128,8 +133,15 @@ const WELCOME_MESSAGE: ChatMessage = {
 const PER_TIER_TIMEOUT_MS = 30_000;
 
 function isTransientFailure(status: number): boolean {
-  if (status === 429) return true;
+  // Transient: cascade to next tier
+  if (status === 429) return true;       // rate-limited
+  if (status === 404) return true;       // model unavailable / retired
+  if (status === 408) return true;       // request timeout
+  if (status === 502 || status === 503 || status === 504) return true;
   if (status >= 500 && status < 600) return true;
+  // Fatal: stop cascading and surface to user
+  //   400 = bad request (won't get better next tier)
+  //   401 / 403 = auth error (key wrong)
   return false;
 }
 
