@@ -39,7 +39,7 @@ export default function AchievementCard({ achievement, onView, delay = 0 }: Prop
       {hasCert ? (
         <button
           onClick={() => onView(achievement)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 hover:bg-primary/25 text-primary-light text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/20"
+          className="inline-flex items-center gap-2 py-2.5 clip-corner-tr bg-primary/15 hover:bg-primary/25 text-primary-light text-sm font-medium transition-all duration-300 hover:-translate-y-0.5"
         >
           <FaEye size={12} /> View Certificate
           <span className="text-xs text-text-muted">
@@ -47,7 +47,7 @@ export default function AchievementCard({ achievement, onView, delay = 0 }: Prop
           </span>
         </button>
       ) : (
-        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface text-text-muted text-xs italic">
+        <span className="inline-flex items-center gap-2 py-2.5 clip-corner-bl bg-surface text-text-muted text-xs italic">
           Certificate coming soon
         </span>
       )}

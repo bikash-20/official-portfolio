@@ -22,7 +22,7 @@ export default function LeetCodeCard() {
           href="https://leetcode.com/bikashtalukder"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-border text-xs text-text-muted hover:text-primary-light hover:border-primary/40 transition-colors"
+          className="inline-flex items-center gap-1 py-1 clip-corner-bl border border-border text-xs text-text-muted hover:text-primary-light hover:border-primary/40 transition-all duration-300"
         >
           @bikashtalukder →
         </a>

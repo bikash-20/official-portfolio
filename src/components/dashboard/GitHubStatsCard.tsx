@@ -26,7 +26,7 @@ export default function GitHubStatsCard() {
           href="https://github.com/bikash-20"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-border text-xs text-text-muted hover:text-primary-light hover:border-primary/40 transition-colors"
+          className="inline-flex items-center gap-1 py-1 clip-corner-tr border border-border text-xs text-text-muted hover:text-primary-light hover:border-primary/40 transition-all duration-300"
         >
           @bikash-20 →
         </a>

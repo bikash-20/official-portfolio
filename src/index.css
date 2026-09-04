@@ -144,6 +144,50 @@ html.lenis body {
       linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 5%, transparent) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+
+  /* ---------------------------------------------------------------------- */
+  /*  Cut-corner / diagonal CTA shape                                       */
+  /*                                                                       */
+  /*  Editorial diagonal-cropped buttons (matches the "MMXXVI / 01"        */
+  /*  caption motif). Use them in pairs with opposite cuts for visual      */
+  /*  rhythm — e.g. one .clip-corner-tr + one .clip-corner-bl side by     */
+  /*  side. The 12px cut size reads clearly on a 36-40px-tall button      */
+  /*  without dominating the silhouette.                                    */
+  /* ---------------------------------------------------------------------- */
+  .clip-corner-tr,
+  .clip-corner-bl {
+    /* a touch of horizontal breathing room so the crop doesn't crowd
+       the leading icon */
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+  .clip-corner-tr {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 12px) 0,
+      100% 12px,
+      100% 100%,
+      12px 100%,
+      0 calc(100% - 12px)
+    );
+  }
+  .clip-corner-bl {
+    clip-path: polygon(
+      12px 0,
+      100% 0,
+      100% calc(100% - 12px),
+      calc(100% - 12px) 100%,
+      0 100%,
+      0 12px
+    );
+  }
+  /* On hover the corner flips direction — a tiny delight moment that
+     also doubles as a click affordance. Only enabled when the user
+     hasn't asked for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .clip-corner-tr:hover { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }
+    .clip-corner-bl:hover { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+  }
 }
 
 /* Scrollbar */
