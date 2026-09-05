@@ -70,7 +70,7 @@ export default function Navbar() {
                 {active === link.href.slice(1) && (
                   <motion.span
                     layoutId="nav-underline"
-                    className="absolute left-3 right-3 -bottom-0.5 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full"
+                    className="absolute left-3 right-3 -bottom-0.5 h-0.5 bg-linear-to-r from-primary to-secondary rounded-full"
                   />
                 )}
               </a>
