@@ -105,6 +105,8 @@ Contact:
 - Phone / WhatsApp: +8801926240062
 - LinkedIn: https://www.linkedin.com/in/bikash-talukder-6497633b8/
 - GitHub: https://github.com/bikash-20
+- LeetCode: https://leetcode.com/bikashtalukder
+- Codeforces: https://codeforces.com/profile/talukder_20
 
 Rules:
 - Only answer questions about Bikash.

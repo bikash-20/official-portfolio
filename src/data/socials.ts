@@ -4,7 +4,7 @@ import {
   FaWhatsapp,
   FaEnvelope,
 } from 'react-icons/fa';
-import { SiLeetcode } from 'react-icons/si';
+import { SiLeetcode, SiCodeforces } from 'react-icons/si';
 import type { IconType } from 'react-icons';
 
 /**
@@ -19,7 +19,7 @@ import type { IconType } from 'react-icons';
  */
 export interface SocialLink {
   /** Stable id — also used as React key. */
-  id: 'github' | 'linkedin' | 'leetcode' | 'whatsapp' | 'email';
+  id: 'github' | 'linkedin' | 'leetcode' | 'codeforces' | 'whatsapp' | 'email';
   icon: IconType;
   /** Outbound URL (mailto: works for the email entry). */
   href: string;
@@ -55,6 +55,14 @@ export const SOCIALS: readonly SocialLink[] = [
     label: 'LeetCode',
     handle: '@bikashtalukder',
     accent: 'text-amber-400',
+  },
+  {
+    id: 'codeforces',
+    icon: SiCodeforces,
+    href: 'https://codeforces.com/profile/talukder_20',
+    label: 'Codeforces',
+    handle: '@talukder_20',
+    accent: 'text-sky-400',
   },
   {
     id: 'whatsapp',
