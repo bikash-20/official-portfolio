@@ -10,17 +10,26 @@ interface Props {
   onClose: () => void;
 }
 
-const SUGGESTIONS = [
-  "What are Bikash's top skills?",
-  'Tell me about LiquiGuard.',
-  'What hackathons has he won?',
-  'How can I contact him?',
-];
+const SUGGESTIONS_BY_MODE = {
+  bikash: [
+    "What are Bikash's top skills?",
+    'Tell me about LiquiGuard.',
+    'What hackathons has he won?',
+    'How can I contact him?',
+  ],
+  general: [
+    'Explain monads in one paragraph.',
+    'Write a Python decorator that retries on exception.',
+    'What is the difference between SQL JOIN types?',
+    'Give me 3 ideas for a side project this weekend.',
+  ],
+} as const;
 
 export default function ChatWidget({ onClose }: Props) {
-  const { messages, loading, send, clear, stop, activeTier, triedTiers } = useThreshold();
+  const { messages, loading, send, clear, stop, activeTier, triedTiers, mode, setMode } = useThreshold();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const suggestions = SUGGESTIONS_BY_MODE[mode];
 
   // Auto-scroll on new tokens / new messages.
   useEffect(() => {
@@ -59,11 +68,29 @@ export default function ChatWidget({ onClose }: Props) {
           <div className="min-w-0">
             <div className="font-heading font-semibold text-sm truncate">Threshold</div>
             <div className="text-[10px] text-text-muted truncate">
-              Bikash's Portfolio Assistant · {CASCADE.length}-tier cascade
+              {mode === 'bikash' ? "Bikash's Portfolio Assistant" : 'General Assistant'} ·{' '}
+              {CASCADE.length}-tier cascade
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {/* Mode toggle — click to switch between Bikash-aware and general. */}
+          <button
+            onClick={() => setMode(mode === 'bikash' ? 'general' : 'bikash')}
+            className={`text-[10px] px-2 py-1 rounded-full border transition-colors uppercase tracking-wider font-mono ${
+              mode === 'bikash'
+                ? 'border-primary/40 text-primary-light hover:bg-primary/10'
+                : 'border-secondary/40 text-secondary-light hover:bg-secondary/10'
+            }`}
+            title={
+              mode === 'bikash'
+                ? 'Currently scoped to Bikash. Click to switch to general.'
+                : 'Currently general. Click to switch back to Bikash-aware.'
+            }
+            aria-label={`Mode: ${mode}. Click to toggle.`}
+          >
+            {mode === 'bikash' ? 'Bikash' : 'General'}
+          </button>
           <button
             onClick={clear}
             className="p-2 rounded-lg hover:bg-surface text-text-muted hover:text-text transition-colors"
@@ -207,7 +234,7 @@ export default function ChatWidget({ onClose }: Props) {
       {/* Suggestions */}
       {messages.length <= 1 && (
         <div className="px-4 pb-2 flex flex-wrap gap-1.5">
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <button
               key={s}
               onClick={() => send(s)}
@@ -229,7 +256,11 @@ export default function ChatWidget({ onClose }: Props) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about Bikash..."
+          placeholder={
+            mode === 'bikash'
+              ? 'Ask about Bikash...  (try /general)'
+              : 'Ask anything...  (try /bikash)'
+          }
           disabled={loading}
           className="flex-1 px-3.5 py-2.5 rounded-lg bg-bg border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm transition-colors disabled:opacity-60"
         />

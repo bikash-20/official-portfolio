@@ -47,17 +47,19 @@ const STAGGER_GROUP_VARIANT = 'showGroup';
 /* ---- shared variant shapes ---------------------------------------------- */
 
 function makeItemVariants(y: number, duration: number, reduced: boolean): Variants {
-  // When reduced, hidden == show so the element never animates from off-state.
   const targetY = reduced ? 0 : y;
+  const hiddenOpacity = reduced ? 1 : 0;
+  const hiddenScale = reduced ? 1 : 0.985;
   const targetOpacity = 1;
+  const targetScale = 1;
   const transition: Transition = reduced
     ? { duration: 0 }
     : { duration, ease: [0.22, 1, 0.36, 1] };
 
   return {
-    hidden: { opacity: targetOpacity, y: targetY },
-    [STAGGER_GROUP_VARIANT]: { opacity: targetOpacity, y: targetY, transition },
-    show: { opacity: targetOpacity, y: targetY, transition },
+    hidden: { opacity: hiddenOpacity, y: targetY, scale: hiddenScale },
+    [STAGGER_GROUP_VARIANT]: { opacity: targetOpacity, y: 0, scale: targetScale, transition },
+    show: { opacity: targetOpacity, y: 0, scale: targetScale, transition },
   };
 }
 
@@ -78,7 +80,7 @@ export interface RevealProps extends Omit<MotionProps, 'initial' | 'animate' | '
   duration?: number;
   /** How much of the element must be in view to trigger. 0–1. Default 0.15. */
   amount?: number;
-  /** Replay every time the element re-enters view. Default false. */
+  /** Animate back out when it leaves and replay when it re-enters. Default true. */
   repeat?: boolean;
   children: ReactNode;
 }
@@ -87,11 +89,12 @@ export function Reveal({
   y = 24,
   duration = 0.55,
   amount = 0.15,
-  repeat = false,
+  repeat = true,
   children,
   ...rest
 }: RevealProps) {
-  const { inStaggerGroup, reduced } = useContext(RevealCtx);
+  const { inStaggerGroup, reduced: groupReduced } = useContext(RevealCtx);
+  const reduced = groupReduced || useReducedMotion();
   const variants = makeItemVariants(y, duration, reduced);
 
   // Inside a stagger group: the parent drives `animate` via staggerChildren,
@@ -131,7 +134,7 @@ export interface RevealGroupProps extends Omit<MotionProps, 'initial' | 'animate
   stagger?: number;
   /** How much of the group must be in view to trigger. 0–1. Default 0.12. */
   amount?: number;
-  /** Replay every time the group re-enters view. Default false. */
+  /** Animate back out when it leaves and replay when it re-enters. Default true. */
   repeat?: boolean;
   children: ReactNode;
 }
@@ -139,7 +142,7 @@ export interface RevealGroupProps extends Omit<MotionProps, 'initial' | 'animate
 export function RevealGroup({
   stagger = 0.07,
   amount = 0.12,
-  repeat = false,
+  repeat = true,
   children,
   ...rest
 }: RevealGroupProps) {

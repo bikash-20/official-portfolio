@@ -53,14 +53,24 @@ export const CASCADE: readonly CascadeTier[] = [
 ] as const;
 
 /* -------------------------------------------------------------------------- */
-/*  System prompt                                                             */
+/*  System prompts — two modes                                                 */
+/*                                                                            */
+/*  'bikash' (default): answers about Bikash and the things on his portfolio,  */
+/*  but also general questions — it's a portfolio assistant, not a jail.       */
+/*                                                                            */
+/*  'general': drops the Bikash framing entirely. Free-form assistant. The    */
+/*  upstream models' own RLHF safety is the only guardrail.                   */
+/*                                                                            */
+/*  Toggle mid-conversation with `/general` or `/bikash` (consumed as a       */
+/*  slash command, not sent to the API), or via the UI chip in the header.    */
 /* -------------------------------------------------------------------------- */
 
-const SYSTEM_PROMPT = `You are Threshold — the AI assistant embedded in Bikash Talukder's portfolio website.
-You run on a 10-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
-Your job is to answer questions about Bikash Talukder — a Full-Stack Developer & AI Systems Builder.
+export type ThresholdMode = 'bikash' | 'general';
 
-Context about Bikash:
+export const BIKASH_PROMPT = `You are Threshold — the AI assistant embedded in Bikash Talukder's portfolio website.
+You run on a 10-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
+
+About Bikash (use this whenever relevant):
 - 2nd Year CSE @ Metropolitan University, CGPA 3.65
 - 78+ public repositories, 2,280+ GitHub contributions
 - 2x National Hackathon Finalist (PSTU 2026, SUST 2026)
@@ -116,16 +126,29 @@ Contact:
 - Codeforces: https://codeforces.com/profile/talukder_20
 
 Rules:
-- Only answer questions about Bikash.
-- Be professional and enthusiastic.
-- Redirect if asked about anything else.
-- Keep responses concise (2-3 paragraphs).
-- Format responses with markdown: use **bold**, lists, and inline code where helpful.
+- Answer the user's question helpfully. When the question is about Bikash, lean on the context above. When it isn't, answer it directly using your own knowledge — don't redirect.
+- Be professional and a little enthusiastic.
+- Keep responses concise (2-3 paragraphs unless the user asks for more).
+- Format with markdown: **bold**, lists, inline code where helpful.
 - For code samples, wrap in fenced \`\`\`language blocks.
 - For math, use LaTeX: $inline$ or $$display$$.
-- When asked about projects, quote details from the list above.
-- When asked about skills, list from the provided skill set.
-- If you don't know something, say "I don't have that information, but you can ask Bikash directly!"`;
+- If you don't know something specific about Bikash, say so honestly and suggest emailing him directly.`;
+
+/**
+ * General-purpose mode. Drops the Bikash framing entirely — the chat is a
+ * free-form assistant powered by the same 10-tier cascade. The cascade's
+ * upstream models carry their own RLHF safety; we don't add extra rules
+ * on top.
+ */
+export const GENERAL_PROMPT = `You are Threshold — a helpful, technically capable AI assistant embedded in a developer's portfolio site.
+
+You run on a 10-tier free OpenRouter cascade; if the current model can't answer, the next tier takes over automatically. You don't need to mention this unless asked.
+
+Rules:
+- Answer the user's question directly. Be accurate, concise, and friendly.
+- Use markdown: **bold**, lists, inline code. Wrap code samples in fenced \`\`\`language blocks. Use LaTeX ($inline$ / $$display$$) for math.
+- If you genuinely don't know, say so — don't invent citations, URLs, or numbers.
+- Keep responses proportionate to the question. Short questions get short answers.`;
 
 /* -------------------------------------------------------------------------- */
 /*  Constants + helpers                                                       */
@@ -135,8 +158,62 @@ const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi! I'm Threshold — Bikash's AI assistant. Ask me anything about his projects, skills, hackathon wins, or how to get in touch.",
+    "Hi! I'm Threshold — Bikash's AI assistant. Ask me about his projects, skills, and hackathon wins — or anything else: switch to general mode with `/general` (back with `/bikash`).",
 };
+
+const MODE_STORAGE_KEY = 'bt-threshold-mode';
+
+function readInitialMode(): ThresholdMode {
+  if (typeof window === 'undefined') return 'bikash';
+  const hinted = new URLSearchParams(window.location.search).get('mode');
+  if (hinted === 'general' || hinted === 'bikash') return hinted;
+  const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+  if (stored === 'general' || stored === 'bikash') return stored;
+  return 'bikash';
+}
+
+function systemPromptFor(mode: ThresholdMode): string {
+  return mode === 'general' ? GENERAL_PROMPT : BIKASH_PROMPT;
+}
+
+/**
+ * Recognises slash commands and returns the (stripped, mode-flipped)
+ * payload if one was found, or null if the input should be sent verbatim.
+ * Commands: `/general`, `/bikash`. Both are case-insensitive and may be
+ * followed by trailing whitespace or the rest of the input as a comment.
+ */
+export interface SlashResult {
+  /** New mode after the command. */
+  mode: ThresholdMode;
+  /** The text to send to the API (the body after the slash command). May be ''. */
+  body: string;
+  /** True if `body` after stripping is non-empty — caller may surface this as a hint. */
+  hasBody: boolean;
+}
+
+export function parseSlashCommand(input: string, current: ThresholdMode): SlashResult | null {
+  const trimmed = input.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower === '/general' || lower.startsWith('/general ')) {
+    const body = trimmed.slice('/general'.length).trim();
+    return { mode: 'general', body, hasBody: body.length > 0 };
+  }
+  if (lower === '/bikash' || lower.startsWith('/bikash ')) {
+    const body = trimmed.slice('/bikash'.length).trim();
+    return { mode: 'bikash', body, hasBody: body.length > 0 };
+  }
+  // Implicit switch if the user types `/mode <name>`.
+  if (lower.startsWith('/mode ')) {
+    const arg = lower.slice('/mode '.length).trim();
+    if (arg === 'general' || arg === 'bikash') {
+      const body = trimmed.slice(('/mode ' + arg).length).trim();
+      return { mode: arg, body, hasBody: body.length > 0 };
+    }
+  }
+  // No command found.
+  void current; // (current is informational; not used in this parser)
+  return null;
+}
 
 const PER_TIER_TIMEOUT_MS = 30_000;
 
@@ -259,6 +336,8 @@ export interface UseThresholdReturn {
   loading: boolean;
   activeTier: number;
   triedTiers: number;
+  mode: ThresholdMode;
+  setMode: (mode: ThresholdMode) => void;
   send: (userText: string) => Promise<void>;
   clear: () => void;
   stop: () => void;
@@ -269,7 +348,17 @@ export function useThreshold(): UseThresholdReturn {
   const [loading, setLoading] = useState(false);
   const [activeTier, setActiveTier] = useState(-1);
   const [triedTiers, setTriedTiers] = useState(0);
+  const [mode, setModeState] = useState<ThresholdMode>(readInitialMode);
   const abortRef = useRef<AbortController | null>(null);
+
+  const setMode = useCallback((next: ThresholdMode) => {
+    setModeState(next);
+    try {
+      window.localStorage.setItem(MODE_STORAGE_KEY, next);
+    } catch {
+      /* storage unavailable — silent */
+    }
+  }, []);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -278,6 +367,29 @@ export function useThreshold(): UseThresholdReturn {
 
   const send = useCallback(async (userText: string) => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+
+    // ── Slash command intercept ────────────────────────────────────────────
+    // `/general`, `/bikash`, `/mode <name>` switch modes and (if there's a
+    // trailing body) re-send the remainder as a normal message in the new
+    // mode. The slash command itself never reaches the API.
+    const slash = parseSlashCommand(userText, mode);
+    if (slash) {
+      setMode(slash.mode);
+      if (!slash.hasBody) {
+        // Pure mode switch — show an in-app confirmation, no API call.
+        const ack = slash.mode === 'general'
+          ? "Switched to **general** mode. Ask me anything — code, math, writing, anything at all. Use `/bikash` to come back."
+          : "Switched back to **Bikash-aware** mode. Ask about his projects, skills, or anything else. Use `/general` for free-form chat.";
+        setMessages((prev) => [
+          ...prev,
+          { id: newId(), role: 'user', content: userText },
+          { id: newId(), role: 'assistant', content: ack },
+        ]);
+        return;
+      }
+      // Fall through with the stripped body.
+      userText = slash.body;
+    }
 
     // ── No key path ────────────────────────────────────────────────────────
     if (!apiKey) {
@@ -308,7 +420,7 @@ export function useThreshold(): UseThresholdReturn {
 
     // Truncate context window to last 6 turns for prompt-budget safety.
     const conversation = [
-      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'system' as const, content: systemPromptFor(mode) },
       ...messages.slice(-6).filter((m) => m.role !== 'system'),
       { role: 'user' as const, content: userText },
     ];
@@ -433,7 +545,7 @@ export function useThreshold(): UseThresholdReturn {
     setActiveTier(-1);
     setTriedTiers(0);
     abortRef.current = null;
-  }, [messages]);
+  }, [messages, mode, setMode]);
 
   const clear = useCallback(() => {
     abortRef.current?.abort();
@@ -442,5 +554,5 @@ export function useThreshold(): UseThresholdReturn {
     setTriedTiers(0);
   }, []);
 
-  return { messages, loading, send, clear, stop, activeTier, triedTiers };
+  return { messages, loading, send, clear, stop, activeTier, triedTiers, mode, setMode };
 }

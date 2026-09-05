@@ -94,6 +94,8 @@ export default function Navbar() {
           </div>
           <button
             onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
             className="lg:hidden p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface transition-colors"
             aria-label="Menu"
           >
@@ -109,6 +111,7 @@ export default function Navbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
+            id="mobile-navigation"
             className="lg:hidden overflow-hidden glass-strong"
           >
             <ul className="px-4 py-3 space-y-1">

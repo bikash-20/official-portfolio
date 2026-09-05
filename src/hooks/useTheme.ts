@@ -7,6 +7,7 @@ import {
 } from '@/data/palettes';
 
 const STORAGE_KEY = 'bt-palette';
+const PALETTE_EVENT = 'bt-palette-change';
 
 function readInitial(): PaletteId {
   if (typeof window === 'undefined') return DEFAULT_PALETTE;
@@ -15,8 +16,12 @@ function readInitial(): PaletteId {
   const params = new URLSearchParams(window.location.search);
   const hinted = params.get('palette');
   if (hinted && PALETTES.some((p) => p.id === hinted)) return hinted as PaletteId;
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored && PALETTES.some((p) => p.id === stored)) return stored as PaletteId;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored && PALETTES.some((p) => p.id === stored)) return stored as PaletteId;
+  } catch {
+    /* storage unavailable — use the default palette */
+  }
   return DEFAULT_PALETTE;
 }
 
@@ -48,6 +53,15 @@ export function useTheme() {
   const [paletteId, setPaletteId] = useState<PaletteId>(readInitial);
 
   useEffect(() => {
+    const onPaletteChange = (event: Event) => {
+      const id = (event as CustomEvent<PaletteId>).detail;
+      if (PALETTES.some((p) => p.id === id)) setPaletteId(id);
+    };
+    window.addEventListener(PALETTE_EVENT, onPaletteChange);
+    return () => window.removeEventListener(PALETTE_EVENT, onPaletteChange);
+  }, []);
+
+  useEffect(() => {
     applyPalette(paletteId);
     try {
       window.localStorage.setItem(STORAGE_KEY, paletteId);
@@ -58,6 +72,7 @@ export function useTheme() {
 
   const setPalette = useCallback((id: PaletteId) => {
     setPaletteId(id);
+    window.dispatchEvent(new CustomEvent<PaletteId>(PALETTE_EVENT, { detail: id }));
   }, []);
 
   return {
