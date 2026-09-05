@@ -29,6 +29,11 @@ export interface Achievement {
   date: string;
   certificate?: string; // path in /assets
   certificateType?: 'pdf' | 'image';
+  /**
+   * Display label for the monogram — NOT a real icon name. `AchievementCard`
+   * renders only the first character (e.g. "Trophy" → "T"). Use any short,
+   * human-readable noun.
+   */
   icon: string;
 }
 
@@ -36,6 +41,9 @@ export interface Achievement {
  * A "stat" card displayed alongside achievements. Visually identical to
  * `Achievement` (rendered by `AchievementCard`) but carries no certificate
  * and uses a string id so we don't pretend it's a numbered milestone.
+ *
+ * `icon` follows the same convention as Achievement.icon — only the first
+ * character is rendered as a monogram.
  */
 export interface Stat {
   id: string;

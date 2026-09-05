@@ -70,11 +70,9 @@ export function useGitHubUser() {
 /**
  * Build a synthetic 53-week contribution grid.
  *
- * The real GitHub contributions calendar lives at
- * `https://github.com/users/<name>/contributions` and is not exposed via the
- * REST API (you need a GraphQL token). Until a server-side proxy or token
- * is wired, we render a plausible pseudo-random pattern and surface a
- * `isSynthetic: true` flag so callers can label the chart as demo data.
+ * Used as the fallback when the live GitHub endpoint is unreachable or not
+ * opted-in (VITE_GITHUB_CONTRIBUTIONS !== 'live'). The shape matches what the
+ * live parser returns so callers don't need a branch.
  */
 function buildSyntheticGrid(): ContributionDay[][] {
   const grid: ContributionDay[][] = [];
@@ -102,11 +100,83 @@ function buildSyntheticGrid(): ContributionDay[][] {
   return grid;
 }
 
+/**
+ * Parse GitHub's public contributions SVG into our grid shape.
+ * Endpoint: https://github.com/users/<name>.contributions (no auth).
+ *
+ * GitHub emits one `<g>` per week and one `<rect>` per day with a
+ * `data-level` attribute (0–4) and a `data-date` attribute. We pull those
+ * out into a 53×7 grid. Any rect we can't classify is level 0.
+ */
+function parseContributionsSvg(svg: string): ContributionDay[][] {
+  // Group by week: each week is wrapped in `<g transform="translate(...)">`.
+  // Inside, rects with `data-date` carry the day.
+  const weekBlocks = svg.split(/<g /g).slice(1); // first chunk is the header
+  const grid: ContributionDay[][] = [];
+
+  for (const block of weekBlocks) {
+    const dayMatches = block.matchAll(
+      /<rect[^>]*data-date="([^"]+)"[^>]*data-level="([^"]+)"/g,
+    );
+    const week: ContributionDay[] = [];
+    for (const m of dayMatches) {
+      const date = m[1];
+      const levelNum = Number(m[2]);
+      const level = (
+        levelNum >= 0 && levelNum <= 4 ? levelNum : 0
+      ) as ContributionDay['level'];
+      // Real count is in the tooltip ("X contributions on …"). Skip —
+      // level alone is enough for the heatmap and avoids brittle regex.
+      week.push({ date, count: 0, level });
+    }
+    if (week.length) grid.push(week);
+  }
+  return grid;
+}
+
+async function fetchLiveGrid(): Promise<ContributionDay[][] | null> {
+  const url = `https://github.com/users/${USERNAME}.contributions`;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) return null;
+    const svg = await res.text();
+    const grid = parseContributionsSvg(svg);
+    return grid.length > 0 ? grid : null;
+  } catch {
+    return null;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+/**
+ * Live GitHub contribution grid.
+ *
+ * By default this returns the synthetic grid + `isSynthetic: true` so we
+ * never make a network call you didn't opt into. To fetch the real calendar,
+ * set `VITE_GITHUB_CONTRIBUTIONS=live` in `.env`. The endpoint is public and
+ * rate-limited per-IP; a 429 or any network failure silently falls back to
+ * the synthetic grid (the hook still reports `isSynthetic: true` so callers
+ * can label the chart honestly).
+ */
 export function useGitHubContributions() {
-  // Synthesise once on mount. We don't currently fetch the real contributions
-  // endpoint; the hook returns `isSynthetic: true` so callers can render an
-  // honest "Demo data" caption. Replace with a fetch to a server-side proxy
-  // (or a `gh-token`-backed GraphQL call) once available.
-  const [grid] = useState<ContributionDay[][]>(() => buildSyntheticGrid());
-  return { grid, isSynthetic: true } as const;
+  const [grid, setGrid] = useState<ContributionDay[][]>(() => buildSyntheticGrid());
+  const [isSynthetic, setIsSynthetic] = useState(true);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_GITHUB_CONTRIBUTIONS !== 'live') return;
+    let mounted = true;
+    fetchLiveGrid().then((live) => {
+      if (!mounted || !live) return;
+      setGrid(live);
+      setIsSynthetic(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return { grid, isSynthetic } as const;
 }

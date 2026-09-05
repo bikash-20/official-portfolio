@@ -6,8 +6,11 @@ import {
   FaMapMarkerAlt,
 } from 'react-icons/fa';
 import { SOCIALS } from '@/data/socials';
+import { WELCOME, useLang } from '@/hooks/useLang';
 
 export default function Hero() {
+  const { locale } = useLang();
+  const greeting = WELCOME[locale];
   return (
     <section
       id="home"
@@ -64,6 +67,19 @@ export default function Hero() {
           >
             Full-stack · LLM engineering · Production AI systems
           </motion.p>
+
+          {/* Optional localized greeting — only renders when locale !== 'en'. */}
+          {greeting && (
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              lang="bn"
+              className="mt-2 text-sm text-secondary-light text-center lg:text-left"
+            >
+              {greeting}
+            </motion.p>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

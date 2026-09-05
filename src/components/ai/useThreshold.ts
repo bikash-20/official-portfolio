@@ -27,8 +27,15 @@ export interface CascadeTier {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Cascade — 10 free OpenRouter tiers (verified Sep 2026)                    */
+/*  Cascade — free OpenRouter tiers.                                           */
+/*                                                                            */
+/*  ⚠️  Last verified: 2026-09-05 (audit script: scripts/verify-cascade.mjs). */
+/*  OpenRouter rotates the free pool frequently. Run the audit monthly and     */
+/*  prune any tier that reports ERR. Don't auto-edit this file — review the   */
+/*  report first, then drop dead slugs and add replacements.                    */
 /* -------------------------------------------------------------------------- */
+
+export const CASCADE_LAST_VERIFIED = '2026-09-05';
 
 export const CASCADE: readonly CascadeTier[] = [
   // First hit wins. Any 404/429/5xx cascades to the next tier.
@@ -167,11 +174,13 @@ function asciiHeader(value: string): string {
   }
 }
 
-// Monotonic, unique-enough id; we don't need cryptographic uniqueness.
-let _idCounter = 0;
+/**
+ * Collision-resistant message id. We keep the human-readable prefix because
+ * it makes the React DevTools tree and Sentry breadcrumbs easier to scan.
+ * `crypto.randomUUID()` is available in every browser we target.
+ */
 function newId(): string {
-  _idCounter += 1;
-  return `m-${Date.now().toString(36)}-${_idCounter.toString(36)}`;
+  return `m-${crypto.randomUUID()}`;
 }
 
 /**

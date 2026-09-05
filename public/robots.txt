@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Crawl-delay is a polite hint; the portfolio is small enough that it
+# doesn't strictly need one, but keeps noisy scrapers from hammering.
+Crawl-delay: 1
+
+Sitemap: https://bikash-20.github.io/official-portfolio/sitemap.xml

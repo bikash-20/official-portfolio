@@ -88,7 +88,10 @@ export default function Navbar() {
           >
             <FaGithub size={20} />
           </a>
-          <PalettePicker />
+          {/* Desktop-only: the mobile drawer below mounts its own. */}
+          <div className="hidden lg:block">
+            <PalettePicker />
+          </div>
           <button
             onClick={() => setOpen(!open)}
             className="lg:hidden p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface transition-colors"

@@ -17,7 +17,7 @@ const SUGGESTIONS = [
   'How can I contact him?',
 ];
 
-export default function ChatWidget({ open, onClose }: Props) {
+export default function ChatWidget({ onClose }: Props) {
   const { messages, loading, send, clear, stop, activeTier, triedTiers } = useThreshold();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
