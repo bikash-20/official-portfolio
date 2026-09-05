@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
 import SectionHeading from '@/components/common/SectionHeading';
+import { RevealGroup, RevealItem } from '@/components/common/Reveal';
 import GitHubStatsCard from './GitHubStatsCard';
 import LeetCodeCard from './LeetCodeCard';
 import CodeforcesCard from './CodeforcesCard';
@@ -17,49 +17,48 @@ export default function Dashboard() {
           subtitle="Real-time snapshots of my developer footprint, location, and learning streak."
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-6">
-          <GitHubStatsCard />
-          <LeetCodeCard />
-          <CodeforcesCard />
-          <WeatherCard />
-          <ClockCard />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="glass rounded-2xl p-5 border border-border hover:border-primary/40 transition-all"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-success/15 flex items-center justify-center text-success">
-                  <span className="font-heading font-bold text-sm">D</span>
+        <RevealGroup
+          stagger={0.05}
+          amount={0.1}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-6"
+        >
+          <RevealItem><GitHubStatsCard /></RevealItem>
+          <RevealItem><LeetCodeCard /></RevealItem>
+          <RevealItem><CodeforcesCard /></RevealItem>
+          <RevealItem><WeatherCard /></RevealItem>
+          <RevealItem><ClockCard /></RevealItem>
+          <RevealItem>
+            <div className="glass rounded-2xl p-5 border border-border hover:border-primary/40 transition-all h-full">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-success/15 flex items-center justify-center text-success">
+                    <span className="font-heading font-bold text-sm">D</span>
+                  </div>
+                  <h3 className="font-heading font-semibold">Today</h3>
                 </div>
-                <h3 className="font-heading font-semibold">Today</h3>
+                <span className="text-xs text-text-muted">Bangladesh</span>
               </div>
-              <span className="text-xs text-text-muted">Bangladesh</span>
+              <div className="font-heading text-xl sm:text-2xl font-bold gradient-text">
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  timeZone: 'Asia/Dhaka',
+                })}
+              </div>
+              <div className="text-xs text-text-muted mt-2">
+                {new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  timeZone: 'Asia/Dhaka',
+                })}{' '}
+                · Friday
+              </div>
             </div>
-            <div className="font-heading text-xl sm:text-2xl font-bold gradient-text">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                timeZone: 'Asia/Dhaka',
-              })}
-            </div>
-            <div className="text-xs text-text-muted mt-2">
-              {new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                timeZone: 'Asia/Dhaka',
-              })}{' '}
-              · Friday
-            </div>
-          </motion.div>
-        </div>
+          </RevealItem>
+        </RevealGroup>
 
         <ContributionGraph />
       </div>
     </section>
   );
 }
-
-// re-import motion in this file

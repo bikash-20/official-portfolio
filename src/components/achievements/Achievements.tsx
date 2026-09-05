@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import SectionHeading from '@/components/common/SectionHeading';
+import { RevealGroup, RevealItem } from '@/components/common/Reveal';
 import AchievementCard from './AchievementCard';
 import CertificateModal from './CertificateModal';
 import { achievements, stats } from '@/data/achievements';
@@ -17,19 +18,22 @@ export default function Achievements() {
           subtitle="Hackathon finals, internship offers, and a track record of consistent contribution."
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-12">
-          {achievements.map((a, i) => (
-            <AchievementCard key={a.id} achievement={a} onView={setActive} delay={i * 0.05} />
+        <RevealGroup
+          stagger={0.05}
+          amount={0.1}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-12"
+        >
+          {achievements.map((a) => (
+            <RevealItem key={a.id} className="h-full">
+              <AchievementCard achievement={a} onView={setActive} />
+            </RevealItem>
           ))}
-          {stats.map((s, i) => (
-            <AchievementCard
-              key={s.id}
-              achievement={s}
-              onView={setActive}
-              delay={(achievements.length + i) * 0.05}
-            />
+          {stats.map((s) => (
+            <RevealItem key={s.id} className="h-full">
+              <AchievementCard achievement={s} onView={setActive} />
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
 
         <div className="text-center text-text-muted text-sm">
           <p className="inline-block px-4 py-2 rounded-full glass border border-border">

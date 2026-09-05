@@ -1,24 +1,16 @@
-import { motion } from 'framer-motion';
 import { FaEye, FaFilePdf, FaImage } from 'react-icons/fa';
 import type { Achievement } from '@/types';
 
 interface Props {
   achievement: Achievement;
   onView: (a: Achievement) => void;
-  delay?: number;
 }
 
-export default function AchievementCard({ achievement, onView, delay = 0 }: Props) {
+export default function AchievementCard({ achievement, onView }: Props) {
   const hasCert = !!achievement.certificate;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, delay }}
-      className="glass rounded-2xl p-6 border border-border hover:border-primary/40 transition-all group"
-    >
+    <div className="h-full glass rounded-2xl p-6 border border-border hover:border-primary/40 transition-all group flex flex-col">
       <div className="flex items-start justify-between mb-3">
         <div className="inline-flex items-center gap-2">
           <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary/15 border border-primary/30 font-heading font-bold text-sm text-primary-light">
@@ -32,7 +24,7 @@ export default function AchievementCard({ achievement, onView, delay = 0 }: Prop
         {achievement.title}
       </h3>
       <p className="text-sm text-primary-light mb-3">{achievement.organization}</p>
-      <p className="text-sm text-text-muted leading-relaxed mb-4">
+      <p className="text-sm text-text-muted leading-relaxed mb-4 flex-1">
         {achievement.description}
       </p>
 
@@ -51,6 +43,6 @@ export default function AchievementCard({ achievement, onView, delay = 0 }: Prop
           Certificate coming soon
         </span>
       )}
-    </motion.div>
+    </div>
   );
 }

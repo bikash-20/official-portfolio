@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SectionHeading from '@/components/common/SectionHeading';
+import { RevealGroup, RevealItem } from '@/components/common/Reveal';
 import ProjectCard from './ProjectCard';
 import { projects } from '@/data/projects';
 import type { Project } from '@/types';
@@ -99,19 +100,29 @@ export default function Projects() {
         </AnimatePresence>
 
         {/* Project grid (or empty state) */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 min-h-[120px]">
+        <RevealGroup
+          stagger={0.05}
+          amount={0.1}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 min-h-[120px]"
+        >
           <AnimatePresence mode="popLayout">
-            {visible.map((p, i) => (
-              <motion.div
-                key={p.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, delay: Math.min(i, 6) * 0.03 }}
-              >
-                <ProjectCard project={p} delay={0} />
-              </motion.div>
+            {visible.map((p) => (
+              <RevealItem key={p.id} className="h-full">
+                {/* Layout + exit wrapper: handles filter-change position
+                    swap and the fade-out. The outer RevealItem (above) owns
+                    the scroll-reveal variant; this inner motion.div only
+                    animates on filter change, not on first paint. */}
+                <motion.div
+                  layout
+                  initial={false}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.25 }}
+                  className="h-full"
+                >
+                  <ProjectCard project={p} />
+                </motion.div>
+              </RevealItem>
             ))}
           </AnimatePresence>
 
@@ -133,7 +144,7 @@ export default function Projects() {
               </button>
             </motion.div>
           )}
-        </div>
+        </RevealGroup>
 
         <p className="text-center text-text-muted text-sm mt-8">
           Showing {visible.length} of {projects.length} projects ·{' '}

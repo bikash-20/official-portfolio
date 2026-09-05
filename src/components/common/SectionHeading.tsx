@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { Reveal } from './Reveal';
 
 interface Props {
   eyebrow?: string;
@@ -9,11 +9,10 @@ interface Props {
 
 export default function SectionHeading({ eyebrow, title, subtitle, align = 'center' }: Props) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6 }}
+    <Reveal
+      y={20}
+      duration={0.6}
+      amount={0.3}
       className={`mb-12 ${align === 'center' ? 'text-center mx-auto' : 'text-left'} max-w-3xl`}
     >
       {eyebrow && (
@@ -27,6 +26,6 @@ export default function SectionHeading({ eyebrow, title, subtitle, align = 'cent
       {subtitle && (
         <p className="mt-4 text-text-muted text-base sm:text-lg leading-relaxed">{subtitle}</p>
       )}
-    </motion.div>
+    </Reveal>
   );
 }

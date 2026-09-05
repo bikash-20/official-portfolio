@@ -1,10 +1,8 @@
-import { motion } from 'framer-motion';
 import { FaExternalLinkAlt, FaGithub, FaStar } from 'react-icons/fa';
 import type { Project } from '@/types';
 
 interface Props {
   project: Project;
-  delay?: number;
 }
 
 const categoryColors: Record<Project['category'], string> = {
@@ -21,14 +19,10 @@ const categoryBadge: Record<Project['category'], string> = {
   Enterprise: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
 };
 
-export default function ProjectCard({ project, delay = 0 }: Props) {
+export default function ProjectCard({ project }: Props) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, delay }}
-      className={`relative rounded-2xl glass overflow-hidden border bg-gradient-to-br ${categoryColors[project.category]} hover:-translate-y-1 transition-all group`}
+    <article
+      className={`relative h-full rounded-2xl glass overflow-hidden border bg-gradient-to-br ${categoryColors[project.category]} hover:-translate-y-1 transition-all group`}
     >
       {/* Decorative header */}
       <div className="relative h-32 bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/10 overflow-hidden">
@@ -97,6 +91,6 @@ export default function ProjectCard({ project, delay = 0 }: Props) {
           )}
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

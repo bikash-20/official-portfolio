@@ -1,5 +1,6 @@
 import { skillCategories } from '@/data/skills';
 import SectionHeading from '@/components/common/SectionHeading';
+import { RevealGroup, RevealItem } from '@/components/common/Reveal';
 import SkillCard from './SkillCard';
 
 export default function SkillsGrid() {
@@ -12,11 +13,17 @@ export default function SkillsGrid() {
           subtitle="A curated set of technologies I use to design, build, and ship production-grade systems across the stack."
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {skillCategories.map((cat, i) => (
-            <SkillCard key={cat.name} category={cat} delay={i * 0.05} />
+        <RevealGroup
+          stagger={0.06}
+          amount={0.1}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
+        >
+          {skillCategories.map((cat) => (
+            <RevealItem key={cat.name}>
+              <SkillCard category={cat} />
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );

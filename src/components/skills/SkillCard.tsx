@@ -1,10 +1,8 @@
-import { motion } from 'framer-motion';
 import type { SkillCategory } from '@/types';
 import { useSkillFilter } from '@/hooks/useSkillFilter';
 
 interface Props {
   category: SkillCategory;
-  delay?: number;
 }
 
 function Monogram({ label, color }: { label: string; color: string }) {
@@ -43,17 +41,11 @@ function CheckMark() {
   );
 }
 
-export default function SkillCard({ category, delay = 0 }: Props) {
+export default function SkillCard({ category }: Props) {
   const { toggle, isSelected, clear } = useSkillFilter();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, delay }}
-      className="glass rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group"
-    >
+    <div className="h-full glass rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group">
       <div className="flex items-center gap-3 mb-5">
         <Monogram label={category.icon} color={category.color} />
         <h3 className="font-heading font-semibold text-lg flex-1">{category.name}</h3>
@@ -61,16 +53,10 @@ export default function SkillCard({ category, delay = 0 }: Props) {
 
       {/* Pill buttons — click toggles the skill in the global filter */}
       <ul className="flex flex-wrap gap-2">
-        {category.skills.map((skill, idx) => {
+        {category.skills.map((skill) => {
           const active = isSelected(skill.name);
           return (
-            <motion.li
-              key={skill.name}
-              initial={{ opacity: 0, scale: 0.92 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: delay + idx * 0.02 }}
-            >
+            <li key={skill.name}>
               <button
                 type="button"
                 onClick={() => toggle(skill.name)}
@@ -84,7 +70,7 @@ export default function SkillCard({ category, delay = 0 }: Props) {
                 {active && <CheckMark />}
                 {skill.name}
               </button>
-            </motion.li>
+            </li>
           );
         })}
 
@@ -101,6 +87,6 @@ export default function SkillCard({ category, delay = 0 }: Props) {
           </li>
         )}
       </ul>
-    </motion.div>
+    </div>
   );
 }
