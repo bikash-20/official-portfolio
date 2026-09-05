@@ -2,25 +2,13 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
 import {
-  FaEnvelope,
-  FaWhatsapp,
-  FaLinkedin,
-  FaGithub,
   FaDownload,
   FaCheck,
   FaCopy,
 } from 'react-icons/fa';
-import { SiLeetcode } from 'react-icons/si';
 import SectionHeading from '@/components/common/SectionHeading';
+import { SOCIALS } from '@/data/socials';
 import { copyToClipboard } from '@/utils/helpers';
-
-const contacts = [
-  { icon: FaEnvelope, label: 'Email', value: 'bikashtalukder040@gmail.com', href: 'mailto:bikashtalukder040@gmail.com', color: 'text-rose-400' },
-  { icon: FaWhatsapp, label: 'WhatsApp', value: '+880 1926 240062', href: 'https://wa.me/8801926240062', color: 'text-emerald-400' },
-  { icon: FaLinkedin, label: 'LinkedIn', value: 'in/bikash-talukder-6497633b8', href: 'https://www.linkedin.com/in/bikash-talukder-6497633b8/', color: 'text-blue-400' },
-  { icon: FaGithub, label: 'GitHub', value: '@bikash-20', href: 'https://github.com/bikash-20', color: 'text-text' },
-  { icon: SiLeetcode, label: 'LeetCode', value: '@bikashtalukder', href: 'https://leetcode.com/bikashtalukder', color: 'text-amber-400' },
-];
 
 export default function Contact() {
   const [copied, setCopied] = useState<string | null>(null);
@@ -83,14 +71,14 @@ export default function Contact() {
           <div>
             <h3 className="font-heading font-semibold text-xl mb-5">Direct Channels</h3>
             <ul className="space-y-3">
-              {contacts.map((c) => (
+              {SOCIALS.map((c) => (
                 <motion.li
-                  key={c.label}
+                  key={c.id}
                   whileHover={{ x: 4 }}
                   className="glass rounded-xl border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex items-center gap-3 p-4">
-                    <div className={`w-10 h-10 rounded-lg bg-surface flex items-center justify-center text-lg ${c.color}`}>
+                    <div className={`w-10 h-10 rounded-lg bg-surface flex items-center justify-center text-lg ${c.accent}`}>
                       <c.icon />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -101,11 +89,11 @@ export default function Contact() {
                         rel="noopener noreferrer"
                         className="text-sm font-mono truncate block hover:text-primary-light"
                       >
-                        {c.value}
+                        {c.handle}
                       </a>
                     </div>
                     <button
-                      onClick={() => handleCopy(c.value, c.label)}
+                      onClick={() => handleCopy(c.handle, c.label)}
                       className="p-2 clip-corner-bl hover:bg-surface text-text-muted hover:text-text transition-colors shrink-0"
                       title="Copy"
                       aria-label={`Copy ${c.label}`}

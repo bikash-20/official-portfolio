@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CASCADE, useThreshold } from './useThreshold';
 import MarkdownContent from './MarkdownContent';
+import ThresholdMark from './ThresholdMark';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 interface Props {
   open: boolean;
@@ -14,28 +16,6 @@ const SUGGESTIONS = [
   'What hackathons has he won?',
   'How can I contact him?',
 ];
-
-/* Small inline Threshold mark — a stepped "candle" line evoking a threshold/limit.
-   Kept inline SVG so we don't pull in a new icon dep and avoid font-glyph drift. */
-function ThresholdMark({ size = 18 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 18h4v-4H4z" />
-      <path d="M10 18h4V8h-4z" />
-      <path d="M16 18h4V4h-4z" />
-    </svg>
-  );
-}
 
 export default function ChatWidget({ open, onClose }: Props) {
   const { messages, loading, send, clear, stop, activeTier, triedTiers } = useThreshold();
@@ -143,7 +123,9 @@ export default function ChatWidget({ open, onClose }: Props) {
                     </span>
                   ) : (
                     <>
-                      <MarkdownContent content={m.content} />
+                      <ErrorBoundary label="assistant message">
+                        <MarkdownContent content={m.content} />
+                      </ErrorBoundary>
                       {m.streaming && (
                         <motion.span
                           animate={{ opacity: [1, 0] }}

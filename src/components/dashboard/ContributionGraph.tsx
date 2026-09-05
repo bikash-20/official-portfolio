@@ -10,7 +10,7 @@ const levelColors = [
 ];
 
 export default function ContributionGraph() {
-  const { grid } = useGitHubContributions();
+  const { grid, isSynthetic } = useGitHubContributions();
 
   return (
     <Reveal className="glass rounded-2xl p-5 sm:p-6 border border-border" y={20} duration={0.6}>
@@ -20,7 +20,9 @@ export default function ContributionGraph() {
             Contribution Activity
           </h3>
           <p className="text-xs text-text-muted mt-1">
-            2,280+ contributions in the last year
+            {isSynthetic
+              ? 'Demo pattern — wire GH_TOKEN to fetch the live calendar.'
+              : '2,280+ contributions in the last year'}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-text-muted">

@@ -1,22 +1,11 @@
 import { motion } from 'framer-motion';
 import {
-  FaGithub,
-  FaLinkedin,
-  FaWhatsapp,
   FaEnvelope,
   FaDownload,
   FaArrowRight,
   FaMapMarkerAlt,
 } from 'react-icons/fa';
-import { SiLeetcode } from 'react-icons/si';
-
-const socials = [
-  { icon: FaGithub, href: 'https://github.com/bikash-20', label: 'GitHub' },
-  { icon: FaLinkedin, href: 'https://www.linkedin.com/in/bikash-talukder-6497633b8/', label: 'LinkedIn' },
-  { icon: SiLeetcode, href: 'https://leetcode.com/bikashtalukder', label: 'LeetCode' },
-  { icon: FaWhatsapp, href: 'https://wa.me/8801926240062', label: 'WhatsApp' },
-  { icon: FaEnvelope, href: 'mailto:bikashtalukder040@gmail.com', label: 'Email' },
-];
+import { SOCIALS } from '@/data/socials';
 
 export default function Hero() {
   return (
@@ -143,9 +132,9 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-8 flex items-center justify-center lg:justify-start gap-3"
           >
-            {socials.map((s) => (
+            {SOCIALS.map((s) => (
               <a
-                key={s.label}
+                key={s.id}
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"

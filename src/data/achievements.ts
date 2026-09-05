@@ -1,4 +1,4 @@
-import type { Achievement } from '@/types';
+import type { Achievement, Stat } from '@/types';
 
 export const achievements: Achievement[] = [
   {
@@ -45,9 +45,13 @@ export const achievements: Achievement[] = [
   },
 ];
 
-export const stats: Achievement[] = [
+/**
+ * Stat tiles — same visual treatment as `achievements` but they don't
+ * represent a specific milestone, so they use string ids.
+ */
+export const stats: Stat[] = [
   {
-    id: 'stat-1' as unknown as number,
+    id: 'stat-contributions',
     title: '2,280+ GitHub Contributions',
     organization: 'Last 12 months',
     description:
@@ -56,7 +60,7 @@ export const stats: Achievement[] = [
     icon: 'Fire',
   },
   {
-    id: 'stat-2' as unknown as number,
+    id: 'stat-repos',
     title: '78+ Public Repositories',
     organization: 'GitHub',
     description:

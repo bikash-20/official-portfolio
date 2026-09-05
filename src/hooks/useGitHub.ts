@@ -67,9 +67,15 @@ export function useGitHubUser() {
   return { data, loading };
 }
 
-/** Build a synthetic 53-week contribution grid.
- *  Real GitHub contributions API requires auth, so we render a plausible
- *  pseudo-random pattern and let the real API replace it once a token is wired. */
+/**
+ * Build a synthetic 53-week contribution grid.
+ *
+ * The real GitHub contributions calendar lives at
+ * `https://github.com/users/<name>/contributions` and is not exposed via the
+ * REST API (you need a GraphQL token). Until a server-side proxy or token
+ * is wired, we render a plausible pseudo-random pattern and surface a
+ * `isSynthetic: true` flag so callers can label the chart as demo data.
+ */
 function buildSyntheticGrid(): ContributionDay[][] {
   const grid: ContributionDay[][] = [];
   const today = new Date();
@@ -97,6 +103,10 @@ function buildSyntheticGrid(): ContributionDay[][] {
 }
 
 export function useGitHubContributions() {
+  // Synthesise once on mount. We don't currently fetch the real contributions
+  // endpoint; the hook returns `isSynthetic: true` so callers can render an
+  // honest "Demo data" caption. Replace with a fetch to a server-side proxy
+  // (or a `gh-token`-backed GraphQL call) once available.
   const [grid] = useState<ContributionDay[][]>(() => buildSyntheticGrid());
-  return { grid };
+  return { grid, isSynthetic: true } as const;
 }

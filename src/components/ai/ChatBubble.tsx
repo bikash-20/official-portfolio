@@ -1,27 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatWidget from './ChatWidget';
-
-/** Inline mark — same shape used inside the chat header; visually consistent. */
-function ThresholdMark({ size = 24 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.25"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 18h4v-4H4z" />
-      <path d="M10 18h4V8h-4z" />
-      <path d="M16 18h4V4h-4z" />
-    </svg>
-  );
-}
+import ThresholdMark from './ThresholdMark';
 
 export default function ChatBubble() {
   const [open, setOpen] = useState(false);

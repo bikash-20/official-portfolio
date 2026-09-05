@@ -4,7 +4,8 @@ import {
   type Transition,
   type Variants,
 } from 'framer-motion';
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type HTMLAttributes, type ReactNode } from 'react';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 /* -------------------------------------------------------------------------- */
 /*  Reveal / RevealGroup / RevealItem                                         */
@@ -17,6 +18,9 @@ import { createContext, useContext, type ReactNode } from 'react';
 /*      natural for cards/sections without flickering on tiny scroll bumps.   */
 /*    - Default motion: fade + 24px slide-up, 550ms, ease-out                  */
 /*      Tuned to read as "confident settle-in", not a slow creep.             */
+/*    - Reduced motion: when `prefers-reduced-motion: reduce`, all reveals     */
+/*      collapse to a no-op (opacity 1, no offset) so users who explicitly    */
+/*      opted out still see content — just instantly.                          */
 /*                                                                             */
 /*  RevealGroup + RevealItem use framer's native `staggerChildren` so a        */
 /*  single `viewport` on the parent drives the cascade — children inherit     */
@@ -36,34 +40,27 @@ const STAGGER_GROUP_VARIANT = 'showGroup';
 
 /* ---- shared variant shapes ---------------------------------------------- */
 
-function makeItemVariants(y: number, duration: number): Variants {
+function makeItemVariants(y: number, duration: number, reduced: boolean): Variants {
+  // When reduced, hidden == show so the element never animates from off-state.
+  const targetY = reduced ? 0 : y;
+  const targetOpacity = 1;
+  const transition: Transition = reduced
+    ? { duration: 0 }
+    : { duration, ease: [0.22, 1, 0.36, 1] };
+
   return {
-    hidden: { opacity: 0, y },
-    [STAGGER_GROUP_VARIANT]: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration,
-        ease: [0.22, 1, 0.36, 1],
-      },
-    },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration,
-        ease: [0.22, 1, 0.36, 1],
-      },
-    },
+    hidden: { opacity: targetOpacity, y: targetY },
+    [STAGGER_GROUP_VARIANT]: { opacity: targetOpacity, y: targetY, transition },
+    show: { opacity: targetOpacity, y: targetY, transition },
   };
 }
 
-/* Context: lets a RevealGroup tell its Reveal/RevealItem children which
-   variant string to drive. With stagger, the parent uses native
-   staggerChildren (single trigger on the group). Without it, each child
-   uses its own whileInView trigger. */
-const RevealCtx = createContext<{ inStaggerGroup: boolean }>({
+/* Context: lets a RevealGroup tell its Reveal/RevealItem children that the
+   parent owns the entrance. The reduced-motion flag is forwarded the same
+   way so every level of the cascade stays consistent. */
+const RevealCtx = createContext<{ inStaggerGroup: boolean; reduced: boolean }>({
   inStaggerGroup: false,
+  reduced: false,
 });
 
 /* ---- single-element reveal ---------------------------------------------- */
@@ -88,12 +85,11 @@ export function Reveal({
   children,
   ...rest
 }: RevealProps) {
-  const { inStaggerGroup } = useContext(RevealCtx);
-  const variants = makeItemVariants(y, duration);
+  const { inStaggerGroup, reduced } = useContext(RevealCtx);
+  const variants = makeItemVariants(y, duration, reduced);
 
   // Inside a stagger group: the parent drives `animate` via staggerChildren,
   // so children just inherit + use `showGroup` as their animate target.
-  // Outside: child has its own viewport trigger.
   if (inStaggerGroup) {
     return (
       <motion.div variants={variants} {...rest}>
@@ -102,13 +98,19 @@ export function Reveal({
     );
   }
 
+  // Reduced motion: render a plain div — no intersection observer, no
+  // animation, content is visible the instant it renders. This also avoids
+  // running an observer for nothing.
+  if (reduced) {
+    return <div {...(rest as HTMLAttributes<HTMLDivElement>)}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial="hidden"
       whileInView="show"
       viewport={{ once: !repeat, amount }}
       variants={variants}
-      transition={{ duration, ease: [0.22, 1, 0.36, 1] } satisfies Transition}
       {...rest}
     >
       {children}
@@ -135,8 +137,20 @@ export function RevealGroup({
   children,
   ...rest
 }: RevealGroupProps) {
+  const reduced = useReducedMotion();
+
+  // Reduced motion: skip the group motion entirely; render a plain div so
+  // children appear immediately without any observer-driven cascade.
+  if (reduced) {
+    return (
+      <RevealCtx.Provider value={{ inStaggerGroup: true, reduced: true }}>
+        <div {...(rest as HTMLAttributes<HTMLDivElement>)}>{children}</div>
+      </RevealCtx.Provider>
+    );
+  }
+
   return (
-    <RevealCtx.Provider value={{ inStaggerGroup: true }}>
+    <RevealCtx.Provider value={{ inStaggerGroup: true, reduced: false }}>
       <motion.div
         initial="hidden"
         whileInView={STAGGER_GROUP_VARIANT}
@@ -174,7 +188,14 @@ export function RevealItem({
   children,
   ...rest
 }: RevealItemProps) {
-  const variants = makeItemVariants(y, duration);
+  const { reduced } = useContext(RevealCtx);
+  const variants = makeItemVariants(y, duration, reduced);
+
+  // Reduced motion: render a plain div, no variants propagation needed.
+  if (reduced) {
+    return <div {...(rest as HTMLAttributes<HTMLDivElement>)}>{children}</div>;
+  }
+
   return (
     <motion.div variants={variants} {...rest}>
       {children}

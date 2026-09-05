@@ -1,13 +1,5 @@
-import { FaGithub, FaLinkedin, FaWhatsapp, FaEnvelope, FaCode } from 'react-icons/fa';
-import { SiLeetcode } from 'react-icons/si';
-
-const socials = [
-  { icon: FaGithub, href: 'https://github.com/bikash-20', label: 'GitHub' },
-  { icon: FaLinkedin, href: 'https://www.linkedin.com/in/bikash-talukder-6497633b8/', label: 'LinkedIn' },
-  { icon: SiLeetcode, href: 'https://leetcode.com/bikashtalukder', label: 'LeetCode' },
-  { icon: FaWhatsapp, href: 'https://wa.me/8801926240062', label: 'WhatsApp' },
-  { icon: FaEnvelope, href: 'mailto:bikashtalukder040@gmail.com', label: 'Email' },
-];
+import { FaCode } from 'react-icons/fa';
+import { SOCIALS } from '@/data/socials';
 
 export default function Footer() {
   return (
@@ -31,8 +23,8 @@ export default function Footer() {
 
           <div className="flex justify-center">
             <ul className="flex items-center gap-3">
-              {socials.map((s) => (
-                <li key={s.label}>
+              {SOCIALS.map((s) => (
+                <li key={s.id}>
                   <a
                     href={s.href}
                     target="_blank"

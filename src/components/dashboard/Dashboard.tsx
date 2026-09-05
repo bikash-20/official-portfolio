@@ -6,6 +6,37 @@ import CodeforcesCard from './CodeforcesCard';
 import WeatherCard from './WeatherCard';
 import ClockCard from './ClockCard';
 import ContributionGraph from './ContributionGraph';
+import DashboardCard from './DashboardCard';
+
+/**
+ * Local-time + date card. Kept inline because it has no fetch — just the
+ * browser's clock — so it's cheaper than a separate file.
+ */
+function TodayCard() {
+  const now = new Date();
+  const headline = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Dhaka',
+  });
+  const yearLine = now.toLocaleDateString('en-US', {
+    year: 'numeric',
+    timeZone: 'Asia/Dhaka',
+  });
+  return (
+    <DashboardCard
+      icon={<span className="font-heading font-bold text-sm">D</span>}
+      iconChipClass="bg-success/15"
+      iconTextClass="text-success"
+      title="Today"
+      rightSlot={<span className="text-xs text-text-muted">Bangladesh</span>}
+    >
+      <div className="font-heading text-xl sm:text-2xl font-bold gradient-text">{headline}</div>
+      <div className="text-xs text-text-muted mt-2">{yearLine}</div>
+    </DashboardCard>
+  );
+}
 
 export default function Dashboard() {
   return (
@@ -27,34 +58,7 @@ export default function Dashboard() {
           <RevealItem><CodeforcesCard /></RevealItem>
           <RevealItem><WeatherCard /></RevealItem>
           <RevealItem><ClockCard /></RevealItem>
-          <RevealItem>
-            <div className="glass rounded-2xl p-5 border border-border hover:border-primary/40 transition-all h-full">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-success/15 flex items-center justify-center text-success">
-                    <span className="font-heading font-bold text-sm">D</span>
-                  </div>
-                  <h3 className="font-heading font-semibold">Today</h3>
-                </div>
-                <span className="text-xs text-text-muted">Bangladesh</span>
-              </div>
-              <div className="font-heading text-xl sm:text-2xl font-bold gradient-text">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                  timeZone: 'Asia/Dhaka',
-                })}
-              </div>
-              <div className="text-xs text-text-muted mt-2">
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  timeZone: 'Asia/Dhaka',
-                })}{' '}
-                · Friday
-              </div>
-            </div>
-          </RevealItem>
+          <RevealItem><TodayCard /></RevealItem>
         </RevealGroup>
 
         <ContributionGraph />

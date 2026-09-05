@@ -4,10 +4,10 @@ import { RevealGroup, RevealItem } from '@/components/common/Reveal';
 import AchievementCard from './AchievementCard';
 import CertificateModal from './CertificateModal';
 import { achievements, stats } from '@/data/achievements';
-import type { Achievement } from '@/types';
+import { isAchievement, type AchievementOrStat } from '@/types';
 
 export default function Achievements() {
-  const [active, setActive] = useState<Achievement | null>(null);
+  const [active, setActive] = useState<AchievementOrStat | null>(null);
 
   return (
     <section id="achievements" className="relative py-20 sm:py-24">
@@ -25,12 +25,12 @@ export default function Achievements() {
         >
           {achievements.map((a) => (
             <RevealItem key={a.id} className="h-full">
-              <AchievementCard achievement={a} onView={setActive} />
+              <AchievementCard item={a} onView={setActive} />
             </RevealItem>
           ))}
           {stats.map((s) => (
             <RevealItem key={s.id} className="h-full">
-              <AchievementCard achievement={s} onView={setActive} />
+              <AchievementCard item={s} onView={setActive} />
             </RevealItem>
           ))}
         </RevealGroup>
@@ -45,9 +45,9 @@ export default function Achievements() {
       <CertificateModal
         open={!!active}
         onClose={() => setActive(null)}
-        src={active?.certificate}
+        src={isAchievement(active!) ? active?.certificate : undefined}
         title={active?.title ?? ''}
-        type={active?.certificateType}
+        type={isAchievement(active!) ? active?.certificateType : undefined}
       />
     </section>
   );

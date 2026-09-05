@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { FaRegClock } from 'react-icons/fa';
+import DashboardCard from './DashboardCard';
 
 export default function ClockCard() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
   }, []);
 
   const time = now.toLocaleTimeString('en-US', {
@@ -27,24 +27,17 @@ export default function ClockCard() {
   });
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="glass rounded-2xl p-5 border border-border hover:border-primary/40 transition-colors"
+    <DashboardCard
+      icon={<FaRegClock size={16} />}
+      iconChipClass="bg-secondary/15"
+      iconTextClass="text-secondary-light"
+      title="Local Time"
+      rightSlot={<span className="text-xs text-text-muted">BD · GMT+6</span>}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary-light">
-            <FaRegClock size={16} />
-          </div>
-          <h3 className="font-heading font-semibold">Local Time</h3>
-        </div>
-        <span className="text-xs text-text-muted">BD · GMT+6</span>
-      </div>
-
       <div className="font-mono text-xl sm:text-2xl font-semibold text-text">
         {time}
       </div>
       <div className="text-xs text-text-muted mt-2">{date}</div>
-    </motion.div>
+    </DashboardCard>
   );
 }

@@ -1,23 +1,24 @@
-import { motion } from 'framer-motion';
 import { SiLeetcode } from 'react-icons/si';
+import DashboardCard from './DashboardCard';
 
+/**
+ * LeetCode card — currently renders a static snapshot.
+ *
+ * LeetCode doesn't expose a public stats API; the values here are a manual
+ * snapshot. The "static" tag in the right slot is a small honesty cue so
+ * visitors don't read the numbers as live data.
+ */
 export default function LeetCodeCard() {
-  // Static snapshot — LeetCode's official API requires auth; using plausible current values
   const solved = 45;
   const streak = 7;
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="glass rounded-2xl p-5 border border-border hover:border-primary/40 transition-colors"
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-warning/15 flex items-center justify-center text-warning">
-            <SiLeetcode size={18} />
-          </div>
-          <h3 className="font-heading font-semibold">LeetCode</h3>
-        </div>
+    <DashboardCard
+      icon={<SiLeetcode size={18} />}
+      iconChipClass="bg-warning/15"
+      iconTextClass="text-warning"
+      title="LeetCode"
+      rightSlot={
         <a
           href="https://leetcode.com/bikashtalukder"
           target="_blank"
@@ -26,8 +27,8 @@ export default function LeetCodeCard() {
         >
           @bikashtalukder →
         </a>
-      </div>
-
+      }
+    >
       <div className="grid grid-cols-3 gap-3">
         <div>
           <div className="text-2xl sm:text-3xl font-heading font-bold gradient-text">{solved}</div>
@@ -46,6 +47,9 @@ export default function LeetCodeCard() {
           <div className="text-xs text-text-muted mt-1">Streak</div>
         </div>
       </div>
-    </motion.div>
+      <p className="mt-3 text-[10px] text-text-muted font-mono uppercase tracking-wider">
+        Static snapshot — LeetCode stats API not public
+      </p>
+    </DashboardCard>
   );
 }
