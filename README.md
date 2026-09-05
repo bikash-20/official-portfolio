@@ -1,6 +1,6 @@
 # Bikash Talukder — Portfolio
 <img width="1280" height="755" alt="image" src="https://github.com/user-attachments/assets/e91da81c-32ae-4901-98d0-01ee0df20459" />
-
+live link:https://official-portfolio-kappa-seven.vercel.app/
 
 A single-page React portfolio for **Bikash Talukder** — Full-Stack Developer &
 AI Systems Builder. Showcases 13+ projects, a live developer dashboard, an AI
