@@ -45,9 +45,9 @@ export default function Achievements() {
       <CertificateModal
         open={!!active}
         onClose={() => setActive(null)}
-        src={isAchievement(active!) ? active?.certificate : undefined}
+        src={active && isAchievement(active) ? active.certificate : undefined}
         title={active?.title ?? ''}
-        type={isAchievement(active!) ? active?.certificateType : undefined}
+        type={active && isAchievement(active) ? active.certificateType : undefined}
       />
     </section>
   );

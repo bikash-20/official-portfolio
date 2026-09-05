@@ -4,7 +4,13 @@ import {
   type Transition,
   type Variants,
 } from 'framer-motion';
-import { createContext, useContext, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  createContext,
+  forwardRef,
+  useContext,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 /* -------------------------------------------------------------------------- */
@@ -182,23 +188,26 @@ export interface RevealItemProps extends Omit<MotionProps, 'initial' | 'animate'
   children: ReactNode;
 }
 
-export function RevealItem({
-  y = 24,
-  duration = 0.55,
-  children,
-  ...rest
-}: RevealItemProps) {
+export const RevealItem = forwardRef<HTMLDivElement, RevealItemProps>(function RevealItem(
+  { y = 24, duration = 0.55, children, ...rest },
+  ref,
+) {
   const { reduced } = useContext(RevealCtx);
   const variants = makeItemVariants(y, duration, reduced);
 
   // Reduced motion: render a plain div, no variants propagation needed.
+  // The ref is forwarded so framer-motion's PopChild measure still functions.
   if (reduced) {
-    return <div {...(rest as HTMLAttributes<HTMLDivElement>)}>{children}</div>;
+    return (
+      <div ref={ref} {...(rest as HTMLAttributes<HTMLDivElement>)}>
+        {children}
+      </div>
+    );
   }
 
   return (
-    <motion.div variants={variants} {...rest}>
+    <motion.div ref={ref} variants={variants} {...rest}>
       {children}
     </motion.div>
   );
-}
+});
