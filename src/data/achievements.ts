@@ -23,10 +23,10 @@ export const achievements: Achievement[] = [
   },
   {
     id: 3,
-    title: 'Software Engineering Internship Offer',
-    organization: 'Internship Offer 1',
+    title: 'Software Engineering Internship Offer — Codveda Technologies',
+    organization: 'Codveda Technologies',
     description:
-      'Received an internship offer based on demonstrated production-grade full-stack and AI engineering skills. (Company name to be added.)',
+      'Received a software engineering internship offer recognizing demonstrated production-grade full-stack and AI engineering capability.',
     date: '2026',
     certificate: '/assets/internship-1.png',
     certificateType: 'image',
@@ -34,12 +34,23 @@ export const achievements: Achievement[] = [
   },
   {
     id: 4,
-    title: 'Software Engineering Internship Offer',
-    organization: 'Internship Offer 2',
+    title: 'Software Development Intern — ArithMatrix Virtual Internship Program 2026',
+    organization: 'ArithMatrix',
     description:
-      'Received a second internship offer recognizing real-world engineering capability across the stack. (Company name to be added.)',
+      'Selected as a Software Development Intern for the ArithMatrix Virtual Internship Program 2026, working on real-world engineering tasks across the stack.',
     date: '2026',
     certificate: '/assets/internship-2.pdf',
+    certificateType: 'pdf',
+    icon: 'Briefcase',
+  },
+  {
+    id: 5,
+    title: 'Web Development & Design Internship — Oasis Infobyte Fellowship',
+    organization: 'Oasis Infobyte',
+    description:
+      'Selected for the Oasis Infobyte Web Development & Design fellowship — a 1-month learning internship focused on hands-on web development practice.',
+    date: '2026',
+    certificate: '/assets/internship-3.pdf',
     certificateType: 'pdf',
     icon: 'Briefcase',
   },
