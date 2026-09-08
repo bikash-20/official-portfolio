@@ -6,15 +6,19 @@ import { useLenis } from 'lenis/react';
  *
  * Lenis (by Studio Freight) gives the page that heavy, lerped,
  * momentum-based feel without intercepting wheel events ourselves. The
- * `<ReactLenis root>` wrapper in App.tsx mounts a single global Lenis
- * instance tied to `window`; this hook is just the side effects that
- * ride on top of it:
+ * `<ReactLenis root options={...}>` wrapper in App.tsx mounts a single
+ * global Lenis instance tied to `window` with the heavy-inertia tuning
+ * (`lerp: 0.04`, `duration: 2.0`, expo-out `easing`, `syncTouch` on,
+ * `wheelMultiplier: 1.25`). This hook only handles the side effects that
+ * ride on top of that instance:
  *
  *   1. Keep `scroll-padding-top` in sync with the navbar height so
  *      `<a href="#id">` jumps (which fall back to native scroll when
  *      Lenis is stopped) clear the navbar.
  *   2. Honor `prefers-reduced-motion: reduce` by stopping Lenis entirely
- *      and letting the browser handle scroll natively.
+ *      and letting the browser handle scroll natively. We disable
+ *      Lenis's own `autoToggle` so this hook is the single source of
+ *      truth — no doubled state churn on media-query changes.
  */
 
 export function useSmoothScroll(): void {

@@ -77,7 +77,7 @@ src/
 │   ├── useTheme.ts        # palette state, URL-hint aware, localStorage-persisted
 │   ├── useSkillFilter.tsx # Context provider + skill-key normalization
 │   └── useGitHub.ts       # GitHub user fetch + synthetic contribution grid
-├── utils/helpers.ts       # formatNumber, copyToClipboard, formatDate/Time, cn
+├── utils/helpers.ts       # formatNumber (1.2k / 2.5M), copyToClipboard
 └── components/
     ├── common/            # Navbar, Footer, PalettePicker, SectionHeading
     ├── home/              # Hero, TypingEffect

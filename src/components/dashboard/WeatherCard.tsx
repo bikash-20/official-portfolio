@@ -61,12 +61,12 @@ async function fetchWeather(apiKey: string, signal: AbortSignal): Promise<Weathe
   const res = await fetch(url, { signal });
   if (!res.ok) return null;
   const j = (await res.json()) as OwmResponse;
-  const main = j.weather?.[0]?.main ?? 'Clear';
+  const main = (j.weather?.[0]?.main ?? 'Clear').toLowerCase();
   const { description } = iconForCondition(main);
   return {
     temp: typeof j.main?.temp === 'number' ? Math.round(j.main.temp) : fallback.temp,
     description,
-    condition: main.toLowerCase(),
+    condition: main,
     humidity: typeof j.main?.humidity === 'number' ? j.main.humidity : fallback.humidity,
     wind: typeof j.wind?.speed === 'number' ? Math.round(j.wind.speed) : fallback.wind,
   };

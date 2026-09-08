@@ -68,4 +68,6 @@ export interface Interest {
   description: string;
   icon: string;
   gradient: string;
+  /** Short skill chips rendered below the description. */
+  tags: string[];
 }

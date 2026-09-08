@@ -32,8 +32,18 @@ export const WELCOME: Record<Locale, string> = {
   bn: 'স্বাগতম — সিলেট থেকে আমার পোর্টফোলিও দেখুন।',
 };
 
-export function useLang(): { locale: Locale; setLocale: (l: Locale) => void } {
-  const [locale, setLocale] = useState<Locale>(readInitial);
+/**
+ * Returns the resolved locale for this session and reflects it on
+ * `<html lang>` so screen readers / search engines pick it up. The locale is
+ * read once on mount from `?lang=…` or `localStorage`; there is no in-app
+ * runtime toggle today.
+ *
+ * `setLocale` is intentionally NOT exposed: the hook is read-only. To
+ * change locale today, change the URL hint and reload. If/when a runtime
+ * toggle is added, expose the setter and persist via the same effect.
+ */
+export function useLang(): { locale: Locale } {
+  const [locale] = useState<Locale>(readInitial);
 
   useEffect(() => {
     try {
@@ -41,9 +51,8 @@ export function useLang(): { locale: Locale; setLocale: (l: Locale) => void } {
     } catch {
       /* storage unavailable — silent */
     }
-    // Reflect on <html lang> so screen readers / search engines pick it up.
     document.documentElement.lang = locale === 'bn' ? 'bn' : 'en';
   }, [locale]);
 
-  return { locale, setLocale };
+  return { locale };
 }

@@ -76,7 +76,6 @@ export function useTheme() {
   }, []);
 
   return {
-    paletteId,
     palette: findPalette(paletteId),
     setPalette,
   };

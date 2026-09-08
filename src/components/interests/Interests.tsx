@@ -48,7 +48,7 @@ export default function Interests() {
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-1.5">
-                  {getTags(it.title).map((tag) => (
+                  {it.tags.map((tag) => (
                     <span
                       key={tag}
                       className="px-2 py-0.5 text-[11px] rounded-md bg-surface/60 border border-border text-text-muted font-mono"
@@ -64,19 +64,4 @@ export default function Interests() {
       </div>
     </section>
   );
-}
-
-function getTags(title: string): string[] {
-  switch (title) {
-    case 'AI / ML':
-      return ['Neural Nets', 'PyTorch', 'Production AI'];
-    case 'Deep Learning':
-      return ['CNNs', 'Transformers', 'QLoRA', 'Transfer Learning'];
-    case 'NLP':
-      return ['Multilingual', 'RAG', 'Transformers', 'OCR'];
-    case 'LLM Engineering':
-      return ['Prompting', 'Fallback Chains', 'Guardrails', 'Voice'];
-    default:
-      return ['VQC', 'Quantum Kernels', 'Hybrid Models'];
-  }
 }

@@ -53,9 +53,7 @@ export default function ChatBubble() {
 
       <AnimatePresence>
         {open && (
-          <div id="threshold-chat">
-            <ChatWidget open={open} onClose={() => setOpen(false)} />
-          </div>
+          <ChatWidget open={open} onClose={() => setOpen(false)} />
         )}
       </AnimatePresence>
     </>
