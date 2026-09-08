@@ -8,7 +8,7 @@ export const achievements: Achievement[] = [
     description:
       'Finalist with LiquiGuard / iquiGuard, an enterprise-grade multi-provider liquidity command center featuring 12-minute EWMA forecasting and live SSE streaming.',
     date: '2026',
-    certificate: '/assets/hackathon-cert.png',
+    certificate: '/assets/sust-cert.png',
     certificateType: 'image',
     icon: 'Trophy',
   },
