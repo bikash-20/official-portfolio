@@ -19,6 +19,8 @@ export const achievements: Achievement[] = [
     description:
       'Built PSTU Wallet, a multi-provider mobile money movement system (bKash, Nagad, Rocket) for the PSTU National Hackathon 2026.',
     date: '2026',
+    certificate: '/assets/pstu-cert.jpeg',
+    certificateType: 'image',
     icon: 'Trophy',
   },
   {
