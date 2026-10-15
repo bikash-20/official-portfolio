@@ -140,4 +140,26 @@ export const projects: Project[] = [
     featured: true,
     category: 'AI',
   },
+  {
+    id: 15,
+    name: 'Crew Health Monitor',
+    description:
+      'Mission-control-style dashboard built for the NASA Space Apps Challenge that simulates live crew telemetry, runs a deterministic rule-based alert engine in the browser, and uses an LLM (via OpenRouter) to write prose only — never to raise alerts. Contract: rules decide, AI advises. The simulation, the AI risk score, and every alert are computed locally; the LLM is invoked server-side to author status briefs and chat. The API key never leaves the server.',
+    tech: ['Next.js 15', 'React 19', 'TypeScript', 'Recharts', 'Framer Motion', 'OpenRouter', 'Tailwind CSS'],
+    liveUrl: 'https://crew-health-monitoring.vercel.app/',
+    githubUrl: 'https://github.com/bikash-20/NASA-SPACE-APP-CHALLANGE',
+    featured: true,
+    category: 'AI',
+  },
+  {
+    id: 16,
+    name: 'Quantara AI',
+    description:
+      'Multi-subject AI tutoring web app combining a hand-curated GRE prep module (1,600 quantitative questions + 1,500 vocabulary words, balanced across difficulty tiers, rendered with LaTeX math), a conversational tutor with streaming answers and multi-model fallback (Bengali supported), a generative practice suite (MCQ quiz, passage quiz, flashcards, vocab, grammar, mock exam), and a local-first progress dashboard in IndexedDB. Open, deployable on Vercel + Cloudflare, with graceful frontend degradation when the backend is rate-limited or offline.',
+    tech: ['Next.js 16', 'React 19', 'TypeScript', 'KaTeX', 'IndexedDB', 'Zustand', 'React Query', 'Tailwind CSS'],
+    liveUrl: 'https://quantara-web-sooty.vercel.app/quiz',
+    githubUrl: 'https://github.com/bikash-20/QUANATRA-AI-V2',
+    featured: true,
+    category: 'AI',
+  },
 ];
