@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useChatSession } from './useChatSession';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -344,7 +345,11 @@ export interface UseThresholdReturn {
 }
 
 export function useThreshold(): UseThresholdReturn {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  // Message list is persisted to localStorage (see useChatSession) so
+  // the chat survives a page reload. Falls back to the welcome message
+  // on first visit, on parse failures, and when storage is unavailable.
+  const session = useChatSession([WELCOME_MESSAGE]);
+  const { messages, setMessages, clear: clearSession } = session;
   const [loading, setLoading] = useState(false);
   const [activeTier, setActiveTier] = useState(-1);
   const [triedTiers, setTriedTiers] = useState(0);
@@ -549,10 +554,10 @@ export function useThreshold(): UseThresholdReturn {
 
   const clear = useCallback(() => {
     abortRef.current?.abort();
-    setMessages([WELCOME_MESSAGE]);
+    clearSession();
     setActiveTier(-1);
     setTriedTiers(0);
-  }, []);
+  }, [clearSession]);
 
   return { messages, loading, send, clear, stop, activeTier, triedTiers, mode, setMode };
 }
