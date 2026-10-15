@@ -22,7 +22,7 @@ const REQUEST_TIMEOUT_MS = 15_000;
 
 const fallbackUser: GitHubUser = {
   login: USERNAME,
-  public_repos: 78,
+  public_repos: 105,
   followers: 31,
   following: 12,
   avatar_url: '',

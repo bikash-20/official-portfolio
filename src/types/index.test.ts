@@ -16,7 +16,7 @@ const achievement: Achievement = {
 
 const stat: Stat = {
   id: 'stat-repos',
-  title: '78+ Public Repositories',
+  title: '105 Public Repositories',
   organization: 'GitHub',
   description: 'desc',
   date: 'Ongoing',

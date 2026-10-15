@@ -93,7 +93,7 @@ export default function Hero() {
             <span className="hidden sm:inline">•</span>
             <span>CGPA 3.65</span>
             <span className="hidden sm:inline">•</span>
-            <span>78+ Repos · 2,280+ Contributions</span>
+            <span>105 Repos · 2,600+ Contributions</span>
           </motion.div>
 
           {/* CTA block: primary + secondary + CV — no toggle, no duplicate. */}

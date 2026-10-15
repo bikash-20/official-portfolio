@@ -22,7 +22,7 @@ export default function ContributionGraph() {
           <p className="text-xs text-text-muted mt-1">
             {isSynthetic
               ? 'Demo pattern — wire GH_TOKEN to fetch the live calendar.'
-              : '2,280+ contributions in the last year'}
+              : '2,600+ contributions in the last 6 months'}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-text-muted">

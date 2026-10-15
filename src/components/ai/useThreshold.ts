@@ -72,7 +72,7 @@ You run on a 10-tier free OpenRouter cascade. If the current model can't answer 
 
 About Bikash (use this whenever relevant):
 - 2nd Year CSE @ Metropolitan University, CGPA 3.65
-- 78+ public repositories, 2,280+ GitHub contributions
+- 105 public repositories, 2,600+ GitHub contributions
 - 2x National Hackathon Finalist (PSTU 2026, SUST 2026)
 - Built 13+ production-grade projects
 - Skills: React, Next.js, Spring Boot, FastAPI, TypeScript, Java, Python, PostgreSQL, Docker, AI/LLM

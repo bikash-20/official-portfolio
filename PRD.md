@@ -31,7 +31,7 @@
 | **Tagline** | I build production-grade software. I architect AI systems. I solve real problems. |
 | **Education** | 2nd Year CSE @ Metropolitan University |
 | **CGPA** | 3.65 |
-| **GitHub** | 78+ public repositories, 2,280+ contributions |
+| **GitHub** | 105 public repositories, 2,600+ contributions |
 | **Hackathons** | 2x National Hackathon Finalist (PSTU 2026, SUST 2026) |
 | **Projects** | 13+ production-grade projects |
 
@@ -310,7 +310,7 @@ This helps debug and lets users know when the primary is being bypassed.
 
 | Widget | Source | Description |
 |--------|--------|-------------|
-| **GitHub Stats** | GitHub API | Repos (78+), contributions (2,200+), stars, followers |
+| **GitHub Stats** | GitHub API | Repos (105), contributions (2,600+), stars, followers |
 | **LeetCode Progress** | LeetCode API | Problems solved, ranking, streak |
 | **Codeforces Rating** | Codeforces API | Current rating, contests |
 | **Weather** | OpenWeather API | Sylhet/Bangladesh weather |
@@ -325,7 +325,7 @@ This helps debug and lets users know when the primary is being bypassed.
 │                                                             │
 │  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐    │
 │  │ 📈 GitHub     │ │ 💻 LeetCode   │ │ 🌤️ Weather    │    │
-│  │ 78 Repos      │ │ 45 Solved     │ │ 28°C ☀️       │    │
+│  │ 105 Repos     │ │ 45 Solved     │ │ 28°C ☀️       │    │
 │  │ 2.2k Contrib  │ │ Rank #3.6M    │ │ Sylhet        │    │
 │  │ 31 Followers  │ │ 7 Day Streak  │ │ Humidity 65%  │    │
 │  └───────────────┘ └───────────────┘ └───────────────┘    │
@@ -351,8 +351,8 @@ This helps debug and lets users know when the primary is being bypassed.
 |-------------|---------|-------------|
 | **PSTU National Hackathon 2026 Finalist** | Intelligent Emergency Response Platform | 📄 Uploaded |
 | **Codex Community Hackathon Finalist** | SUST CSE Carnival 2026 | 📄 Uploaded |
-| **2,200+ GitHub Contributions** | Top 1% among Bangladeshi students | — |
-| **78+ Public Repositories** | One of the most active student developers | — |
+| **2,600+ GitHub Contributions** | Top 1% among Bangladeshi students (last 6 months) | — |
+| **105 Public Repositories** | One of the most active student developers | — |
 
 ### Display Style
 - Card-based layout
@@ -573,7 +573,7 @@ Your job is to answer questions about Bikash — a Full-Stack Developer & AI Sys
 
 Context about Bikash:
 - 2nd Year CSE @ Metropolitan University, CGPA 3.65
-- 78+ public repositories, 2,200+ GitHub contributions
+- 105 public repositories, 2,600+ GitHub contributions
 - 2x National Hackathon Finalist (PSTU 2026, SUST 2026)
 - Built 13+ production-grade projects
 - Skills: React, Next.js, Spring Boot, FastAPI, TypeScript, Java, Python, PostgreSQL, Docker, AI/LLM

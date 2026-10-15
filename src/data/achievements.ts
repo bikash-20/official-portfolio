@@ -65,16 +65,16 @@ export const achievements: Achievement[] = [
 export const stats: Stat[] = [
   {
     id: 'stat-contributions',
-    title: '2,280+ GitHub Contributions',
-    organization: 'Last 12 months',
+    title: '2,600+ GitHub Contributions',
+    organization: 'Last 6 months',
     description:
-      'Top 1% among Bangladeshi students — consistent, year-round contribution activity across 78+ repositories.',
-    date: '2025 — 2026',
+      'Top 1% among Bangladeshi students — hyper-consistent, half-year contribution activity across 105 public repositories.',
+    date: '2026',
     icon: 'Fire',
   },
   {
     id: 'stat-repos',
-    title: '78+ Public Repositories',
+    title: '105 Public Repositories',
     organization: 'GitHub',
     description:
       'One of the most active student developers on GitHub, shipping across AI, web, mobile, and systems domains.',

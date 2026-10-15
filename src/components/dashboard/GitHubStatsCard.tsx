@@ -8,7 +8,7 @@ export default function GitHubStatsCard() {
 
   // useGitHubUser seeds a fallback so we always have numeric defaults even
   // before the network call resolves.
-  const repos = data?.public_repos ?? 78;
+  const repos = data?.public_repos ?? 105;
   const followers = data?.followers ?? 31;
 
   return (
@@ -40,7 +40,7 @@ export default function GitHubStatsCard() {
               contributions API is wired (the dashboard contribution graph
               itself renders a synthetic demo grid — see useGitHub.ts). */}
           <div className="text-2xl sm:text-3xl font-heading font-bold gradient-text">
-            {formatNumber(2280)}
+            {formatNumber(2600)}
           </div>
           <div className="text-xs text-text-muted mt-1">Contributions</div>
         </div>
