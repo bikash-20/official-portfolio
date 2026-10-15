@@ -130,4 +130,14 @@ export const projects: Project[] = [
     githubUrl: 'https://github.com/bikash-20/Coffeshop-E-Commerce-Website',
     category: 'Web',
   },
+  {
+    id: 14,
+    name: 'FinGuard AI',
+    description:
+      'Real-time financial intelligence platform built for the Google Cloud AI Builder Cup 2026 (powered by Hack2skill). Polyglot monorepo: Go hot path for sub-500 ms fraud scoring, Python ML for Vertex AI / Gemini / Document AI, and a Next.js BFF + analyst console. Production-shaped with BigQuery, AlloyDB, Pub/Sub, Dataflow, Terraform, Cloud Build / Cloud Deploy, VPC-SC, and CMEK — all wired through a live data path that hits a real Postgres (alerts) and a goccy BigQuery emulator (transactions) instead of mocks.',
+    tech: ['Go', 'Python', 'Next.js', 'BigQuery', 'AlloyDB', 'Vertex AI', 'Gemini', 'Document AI', 'Terraform', 'Cloud Run'],
+    githubUrl: 'https://github.com/bikash-20/AI-BUILDER-CUP-2026',
+    featured: true,
+    category: 'AI',
+  },
 ];
