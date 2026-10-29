@@ -18,12 +18,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const apiKey = process.env.VITE_OPENROUTER_API_KEY;
-if (!apiKey) {
-  console.error('ERROR: VITE_OPENROUTER_API_KEY is not set.');
-  console.error('Get a free key at https://openrouter.ai/keys');
-  process.exit(2);
-}
+const apiKey = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
 const PROBE_TOKENS = 5;
 const PER_TIER_TIMEOUT_MS = 15_000;
@@ -34,15 +29,38 @@ const PROMPT = 'Reply with the single word "ok".';
 async function loadCascade() {
   const path = resolve(process.cwd(), 'src/components/ai/useThreshold.ts');
   const src = await readFile(path, 'utf8');
-  // Match the CASCADE array entries — they're `'<model>:free'` strings.
-  const re = /\{\s*id:\s*'([^']+:free)'/g;
+  // Match only within the CASCADE array definition
+  const cascadeBlockMatch = src.match(/export const CASCADE:[\s\S]*?\] as const;/);
+  if (!cascadeBlockMatch) return [];
+  const cascadeBlock = cascadeBlockMatch[0];
+  const re = /\{\s*id:\s*'([^']+)'/g;
   const out = [];
   let m;
-  while ((m = re.exec(src)) !== null) out.push(m[1]);
+  while ((m = re.exec(cascadeBlock)) !== null) out.push(m[1]);
   return out;
 }
 
-async function probe(model) {
+async function checkEndpointPublic(model) {
+  const started = Date.now();
+  try {
+    const res = await fetch(`https://openrouter.ai/api/v1/models/${model}/endpoints`);
+    const ms = Date.now() - started;
+    if (!res.ok) {
+      return { model, ok: false, status: res.status, ms, detail: `HTTP ${res.status}` };
+    }
+    const data = await res.json();
+    const count = data.data?.endpoints?.length || 0;
+    if (count > 0) {
+      return { model, ok: true, status: 200, ms, detail: `${count} active provider endpoint(s)` };
+    }
+    return { model, ok: false, status: 200, ms, detail: '0 active provider endpoints (offline)' };
+  } catch (e) {
+    const ms = Date.now() - started;
+    return { model, ok: false, status: 0, ms, detail: e?.message ?? String(e) };
+  }
+}
+
+async function probeWithKey(model) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), PER_TIER_TIMEOUT_MS);
   const started = Date.now();
@@ -66,17 +84,24 @@ async function probe(model) {
     });
     const ms = Date.now() - started;
     if (!res.ok) {
-      return { model, ok: false, status: res.status, ms };
+      let errMsg = `HTTP ${res.status}`;
+      try {
+        const errJson = await res.json();
+        if (errJson?.error?.message) errMsg += ` (${errJson.error.message})`;
+      } catch {
+        /* ignore */
+      }
+      return { model, ok: false, status: res.status, ms, detail: errMsg };
     }
     const j = await res.json();
     const reply = j?.choices?.[0]?.message?.content ?? '';
-    return { model, ok: true, status: 200, ms, reply };
+    return { model, ok: true, status: 200, ms, detail: `"${reply.trim()}"` };
   } catch (e) {
     const ms = Date.now() - started;
     if (controller.signal.aborted) {
-      return { model, ok: false, status: 0, ms, error: `timeout (${PER_TIER_TIMEOUT_MS}ms)` };
+      return { model, ok: false, status: 0, ms, detail: `timeout (${PER_TIER_TIMEOUT_MS}ms)` };
     }
-    return { model, ok: false, status: 0, ms, error: e?.message ?? String(e) };
+    return { model, ok: false, status: 0, ms, detail: e?.message ?? String(e) };
   } finally {
     clearTimeout(timer);
   }
@@ -84,36 +109,39 @@ async function probe(model) {
 
 (async () => {
   const ids = await loadCascade();
-  console.log(`Probing ${ids.length} cascade tiers...\n`);
+  console.log(`Auditing ${ids.length} cascade tiers...`);
+  if (!apiKey) {
+    console.log('ℹ️  No API key provided — checking public OpenRouter provider endpoint availability.');
+    console.log('   (Set VITE_OPENROUTER_API_KEY to test live chat completions)\n');
+  } else {
+    console.log('🔑 Probing completion endpoints with provided API key...\n');
+  }
 
-  const results = await Promise.all(ids.map(probe));
+  const results = await Promise.all(ids.map((id) => (apiKey ? probeWithKey(id) : checkEndpointPublic(id))));
 
   const ok = results.filter((r) => r.ok);
   const bad = results.filter((r) => !r.ok);
 
-  console.log('--- HEALTHY ---');
+  console.log('--- HEALTHY TIERS ---');
   if (ok.length === 0) {
     console.log('  (none)');
   } else {
     for (const r of ok) {
-      console.log(`  OK  [${r.ms}ms]  ${r.model}   → "${r.reply.trim()}"`);
+      console.log(`  OK  [${r.ms}ms]  ${r.model.padEnd(52)} → ${r.detail}`);
     }
   }
 
-  console.log('\n--- UNHEALTHY ---');
+  console.log('\n--- UNHEALTHY / INACTIVE TIERS ---');
   if (bad.length === 0) {
     console.log('  (none)');
   } else {
     for (const r of bad) {
-      const detail = r.error ?? `HTTP ${r.status}`;
-      console.log(`  ERR [${r.ms}ms]  ${r.model}   → ${detail}`);
+      console.log(`  ERR [${r.ms}ms]  ${r.model.padEnd(52)} → ${r.detail}`);
     }
   }
 
-  console.log(`\nSummary: ${ok.length}/${results.length} tiers healthy.`);
-  console.log(`Last verified: ${new Date().toISOString()}`);
-  console.log('\nNOTE: this script only REPORTS — it does not edit useThreshold.ts.');
-  console.log('Open the file and remove dead entries from the CASCADE array.');
+  console.log(`\nSummary: ${ok.length}/${results.length} tiers healthy and reachable.`);
+  console.log(`Last audited: ${new Date().toISOString()}`);
 
   process.exit(ok.length > 0 ? 0 : 1);
 })();

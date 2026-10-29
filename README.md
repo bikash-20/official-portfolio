@@ -99,8 +99,8 @@ src/
 
 ### Threshold AI chat
 
-`src/components/ai/useThreshold.ts` implements a **10-tier free OpenRouter
-cascade** (rotated quarterly as OpenRouter adds/removes models):
+`src/components/ai/useThreshold.ts` implements a **15-tier free OpenRouter
+cascade** (rotated regularly as OpenRouter adds/removes models):
 
 1. Streams OpenAI-compatible SSE from `openrouter.ai/api/v1/chat/completions`.
 2. Per-tier 30s timeout; on transient failure (429/404/408/5xx) advances to

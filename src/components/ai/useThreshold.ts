@@ -30,27 +30,32 @@ export interface CascadeTier {
 /* -------------------------------------------------------------------------- */
 /*  Cascade — free OpenRouter tiers.                                           */
 /*                                                                            */
-/*  ⚠️  Last verified: 2026-09-05 (audit script: scripts/verify-cascade.mjs). */
+/*  ⚠️  Last verified: 2026-10-30 (audit script: scripts/verify-cascade.mjs). */
 /*  OpenRouter rotates the free pool frequently. Run the audit monthly and     */
 /*  prune any tier that reports ERR. Don't auto-edit this file — review the   */
 /*  report first, then drop dead slugs and add replacements.                    */
 /* -------------------------------------------------------------------------- */
 
-export const CASCADE_LAST_VERIFIED = '2026-09-05';
+export const CASCADE_LAST_VERIFIED = '2026-10-30';
 
 export const CASCADE: readonly CascadeTier[] = [
-  // First hit wins. Any 404/429/5xx cascades to the next tier.
-  // Rotate or extend as OpenRouter adds/removes tiers.
-  { id: 'meta-llama/llama-3.3-70b-instruct:free',   label: 'llama-3.3-70b',   provider: 'Meta',              contextK: 128  },
-  { id: 'meta-llama/llama-3.1-8b-instruct:free',    label: 'llama-3.1-8b',    provider: 'Meta',              contextK: 128  },
-  { id: 'inclusionai/ling-3.0-flash-fin:free',      label: 'ling-flash-fin',  provider: 'Inclusion AI',      contextK: 256  },
-  { id: 'google/gemma-4-31b-it:free',               label: 'gemma-4-31b',     provider: 'Google',            contextK: 256  },
-  { id: 'minimax/minimax-m3:free',                  label: 'minimax-m3',      provider: 'MiniMax',           contextK: 1024 },
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free',   label: 'nemotron-3-super',provider: 'NVIDIA',            contextK: 256  },
-  { id: 'thinkingmachines/inkling:free',            label: 'inkling',         provider: 'Thinking Machines', contextK: 1024 },
-  { id: 'z-ai/glm-5.2:free',                        label: 'glm-5.2',         provider: 'Z.ai',              contextK: 256  },
-  { id: 'poolside/laguna-xs-2.1:free',              label: 'laguna-xs',       provider: 'Poolside',          contextK: 64   },
-  { id: 'cohere/north-mini-code:free',              label: 'north-mini-code', provider: 'Cohere',            contextK: 32   },
+  // ── Verified Active OpenRouter Free Models (verified 2026-10-30) ─────────
+  // First hit wins. Any 404/429/5xx cascades automatically to the next tier.
+  { id: 'google/gemma-4-31b-it:free',                         label: 'gemma-4-31b',           provider: 'Google',            contextK: 256  },
+  { id: 'google/gemma-4-26b-a4b-it:free',                     label: 'gemma-4-26b-moe',       provider: 'Google',            contextK: 256  },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b:free',             label: 'nemotron-3-ultra',      provider: 'NVIDIA',            contextK: 1000 },
+  { id: 'nvidia/nemotron-3.5-lightning:free',                 label: 'nemotron-3.5-light',    provider: 'NVIDIA',            contextK: 1000 },
+  { id: 'nvidia/nemotron-3.5-super-vl:free',                  label: 'nemotron-3.5-super-vl', provider: 'NVIDIA',            contextK: 1000 },
+  { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'nemotron-3-nano',       provider: 'NVIDIA',            contextK: 256  },
+  { id: 'thinkingmachines/inkling:free',                      label: 'inkling',               provider: 'Thinking Machines', contextK: 1024 },
+  { id: 'thinkingmachines/inkling-small:free',                label: 'inkling-small',         provider: 'Thinking Machines', contextK: 1024 },
+  { id: 'poolside/laguna-s-2.1:free',                         label: 'laguna-s',              provider: 'Poolside',          contextK: 256  },
+  { id: 'poolside/laguna-xs-2.1:free',                        label: 'laguna-xs',             provider: 'Poolside',          contextK: 256  },
+  { id: 'cohere/north-mini-code:free',                        label: 'north-mini-code',       provider: 'Cohere',            contextK: 256  },
+  { id: 'dots-studio/dots-3-note-preview:free',               label: 'dots-3-note',           provider: 'Dots Studio',       contextK: 512  },
+  { id: 'recursive/flint-v1.0:free',                          label: 'flint',                 provider: 'Recursive',         contextK: 256  },
+  { id: 'xingchen-agi/xing4.0-29b-a4b:free',                  label: 'xing-4.0',              provider: 'XingChen',          contextK: 256  },
+  { id: 'liquid/lfm-2.5-2.6b:free',                           label: 'lfm-2.5',               provider: 'LiquidAI',          contextK: 64   },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +74,7 @@ export const CASCADE: readonly CascadeTier[] = [
 export type ThresholdMode = 'bikash' | 'general';
 
 export const BIKASH_PROMPT = `You are Threshold — the AI assistant embedded in Bikash Talukder's portfolio website.
-You run on a 10-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
+You run on a multi-tier free OpenRouter cascade. If the current model can't answer or fails, the next tier takes over automatically; you don't need to mention this unless asked.
 
 About Bikash (use this whenever relevant):
 - 2nd Year CSE @ Metropolitan University, CGPA 3.65
@@ -143,7 +148,7 @@ Rules:
  */
 export const GENERAL_PROMPT = `You are Threshold — a helpful, technically capable AI assistant embedded in a developer's portfolio site.
 
-You run on a 10-tier free OpenRouter cascade; if the current model can't answer, the next tier takes over automatically. You don't need to mention this unless asked.
+You run on a multi-tier free OpenRouter cascade; if the current model can't answer, the next tier takes over automatically. You don't need to mention this unless asked.
 
 Rules:
 - Answer the user's question directly. Be accurate, concise, and friendly.
@@ -219,13 +224,13 @@ export function parseSlashCommand(input: string, current: ThresholdMode): SlashR
 const PER_TIER_TIMEOUT_MS = 30_000;
 
 /** Transient → cascade to next tier. Fatal → stop and surface. */
-function isTransientFailure(status: number): boolean {
+export function isTransientFailure(status: number): boolean {
   return status === 429 || status === 404 || status === 408
       || status === 502 || status === 503 || status === 504
       || (status >= 500 && status < 600);
 }
 
-function describeError(status: number): string {
+export function describeError(status: number): string {
   if (status === 429) return 'rate-limited';
   if (status === 401 || status === 403) return 'auth error';
   if (status === 404) return 'model unavailable';
@@ -320,13 +325,22 @@ const WRONG_PREFIX_BODY =
   "VITE_OPENROUTER_API_KEY=...\n```\n\n" +
   "Then **restart the dev server** (`npm run dev`).";
 
-const OVERLOADED_BODY = (
+export const OVERLOADED_BODY = (
   fatalSummary: string,
   detail: string,
-): string =>
-  `**Threshold is overloaded right now.**\n\n${fatalSummary}\n\n` +
-  (detail ? `Last attempts:\n${detail}\n\n` : '') +
-  `Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com`;
+  isFatalAuth: boolean = false,
+): string => {
+  const header = isFatalAuth
+    ? '**Threshold API Authentication Error**'
+    : '**Threshold is overloaded right now.**';
+  return (
+    `${header}\n\n${fatalSummary}\n\n` +
+    (detail ? `Last attempts:\n${detail}\n\n` : '') +
+    (isFatalAuth
+      ? 'Please verify that your `VITE_OPENROUTER_API_KEY` in `.env` is valid and active at https://openrouter.ai/keys.'
+      : 'Please try again in a minute, or reach out to Bikash directly: bikashtalukder040@gmail.com')
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /*  Hook                                                                      */
@@ -462,7 +476,12 @@ export function useThreshold(): UseThresholdReturn {
       setActiveTier(i);
       setTriedTiers(i);
 
-      const timer = window.setTimeout(() => controller.abort(), PER_TIER_TIMEOUT_MS);
+      // Dedicated per-tier AbortController ensures a single tier's timeout
+      // does NOT abort the master controller or short-circuit subsequent tiers.
+      const tierController = new AbortController();
+      const onUserAbort = () => tierController.abort();
+      controller.signal.addEventListener('abort', onUserAbort, { once: true });
+      const timer = window.setTimeout(() => tierController.abort(), PER_TIER_TIMEOUT_MS);
       const startedAt = performance.now();
 
       try {
@@ -482,11 +501,20 @@ export function useThreshold(): UseThresholdReturn {
             max_tokens: 800,
             stream: true,
           }),
-          signal: controller.signal,
+          signal: tierController.signal,
         });
 
         if (!res.ok || !res.body) {
-          const reason = res.ok ? 'no body' : describeError(res.status);
+          let errDetail = '';
+          try {
+            const errJson = await res.json();
+            if (errJson?.error?.message) {
+              errDetail = `: ${errJson.error.message}`;
+            }
+          } catch {
+            /* ignore json parse error */
+          }
+          const reason = res.ok ? 'no body' : `${describeError(res.status)}${errDetail}`;
           failures.push({ tier, reason });
           if (!isTransientFailure(res.status)) {
             lastFatal = { tier, reason };
@@ -495,13 +523,12 @@ export function useThreshold(): UseThresholdReturn {
           continue;
         }
 
-        for await (const delta of readSseStream(res.body, controller.signal)) {
+        for await (const delta of readSseStream(res.body, tierController.signal)) {
           appendDelta(delta);
         }
 
         if (tokensReceived) {
-          // We committed tokens under a previous tier's identity (the assistant message
-          // is already on-screen with content). Mark that tier as the server.
+          // We committed tokens under this tier's identity. Mark that tier as the server.
           const latencyMs = Math.round(performance.now() - startedAt);
           finalizeAssistant(tier, latencyMs);
           break;
@@ -510,21 +537,28 @@ export function useThreshold(): UseThresholdReturn {
         // Stream opened, returned cleanly, but no tokens. Treat as transient.
         failures.push({ tier, reason: 'empty stream' });
       } catch (err) {
-        const aborted = controller.signal.aborted;
-        const reason = aborted
+        if (controller.signal.aborted) {
+          // The user explicitly requested to stop.
+          userCancelled = true;
+          break;
+        }
+        const isTimeout = tierController.signal.aborted;
+        const reason = isTimeout
           ? `timeout (${PER_TIER_TIMEOUT_MS / 1000}s)`
           : err instanceof Error
             ? err.message
             : 'network error';
-        // If the user clicked Stop and we already streamed something, keep it
-        // (without tier metadata) and bail. Otherwise record the failure.
-        if (aborted && tokensReceived) {
-          userCancelled = true;
+
+        if (tokensReceived) {
+          // If we already received tokens before a mid-stream drop, finalize what we have.
+          const latencyMs = Math.round(performance.now() - startedAt);
+          finalizeAssistant(tier, latencyMs);
           break;
         }
         failures.push({ tier, reason });
       } finally {
         window.clearTimeout(timer);
+        controller.signal.removeEventListener('abort', onUserAbort);
       }
     }
 
@@ -534,6 +568,9 @@ export function useThreshold(): UseThresholdReturn {
         const last = prev[prev.length - 1];
         const stillStreaming = last && last.id === assistantId && last.streaming;
         if (!stillStreaming) return prev;
+        const isFatalAuth = Boolean(
+          lastFatal && (lastFatal.reason.includes('auth error') || lastFatal.reason.includes('401') || lastFatal.reason.includes('403'))
+        );
         const fatalSummary = lastFatal
           ? `Stopped at **${lastFatal.tier.label}** (${lastFatal.tier.provider}): ${lastFatal.reason}.`
           : failures.length > 0
@@ -541,7 +578,7 @@ export function useThreshold(): UseThresholdReturn {
             : 'No tiers were attempted.';
         const detail = failures.slice(-3).map((f) => `• \`${f.tier.label}\` — ${f.reason}`).join('\n');
         return prev.map((m) =>
-          m.id === assistantId ? { ...m, streaming: false, content: OVERLOADED_BODY(fatalSummary, detail) } : m,
+          m.id === assistantId ? { ...m, streaming: false, content: OVERLOADED_BODY(fatalSummary, detail, isFatalAuth) } : m,
         );
       });
     }

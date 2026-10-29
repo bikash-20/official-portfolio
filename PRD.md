@@ -207,38 +207,27 @@
 
 ### Threshold Cascade — Free Model Fallback Chain
 
-Verified free models available on OpenRouter (September 2026). Threshold tries each tier in order, falling back automatically on any failure (rate limit, timeout, error). Typical free-tier limit per model is **20 requests/min, 200 requests/day**.
+Verified free models available on OpenRouter (audited October 2026). Threshold tries each tier in order, falling back automatically on any failure (rate limit, timeout, error). Typical free-tier limit per model is **20 requests/min, 200 requests/day**.
 
 | Tier | Model ID | Provider | Context | Best For |
 |------|----------|----------|---------|----------|
-| **T1 — Primary** | `minimax/minimax-m3:free` | MiniMax | 1.0M | Vision/multimodal, top quality score, default first pick |
-| **T2 — Fallback** | `z-ai/glm-5.2:free` | Z.ai | 256K | Highest general/coding quality, strong English |
-| **T3 — Fallback** | `thinkingmachines/inkling:free` | Thinking Machines | 1.0M | Reasoning-heavy questions, large context |
-| **T4 — Fallback** | `google/gemma-4-31b-it:free` | Google | 262K | Reliable, well-rounded general Q&A |
-| **T5 — Fallback** | `nvidia/nemotron-3-super-120b-a12b:free` | NVIDIA | 262K | MoE backbone, fast responses |
-| **T6 — Last Resort** | `openrouter/free` | OpenRouter | 200K | Auto-routed free endpoint, ensures the assistant never fully dies |
+| **T1 — Primary** | `google/gemma-4-31b-it:free` | Google DeepMind | 256K | Top quality instruction-tuned dense multimodal model |
+| **T2 — Fallback** | `google/gemma-4-26b-a4b-it:free` | Google DeepMind | 256K | Fast MoE, reasoning & coding Q&A |
+| **T3 — Fallback** | `nvidia/nemotron-3-ultra-550b-a55b:free` | NVIDIA | 1.0M | Massive 550B frontier reasoning & orchestration |
+| **T4 — Fallback** | `nvidia/nemotron-3.5-lightning:free` | NVIDIA | 1.0M | Ultra-fast responses with massive context |
+| **T5 — Fallback** | `nvidia/nemotron-3.5-super-vl:free` | NVIDIA | 1.0M | Multimodal MoE architecture |
+| **T6 — Fallback** | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | NVIDIA | 256K | Dedicated reasoning chain |
+| **T7 — Fallback** | `thinkingmachines/inkling:free` | Thinking Machines | 1.0M | 41B active multimodal MoE |
+| **T8 — Fallback** | `thinkingmachines/inkling-small:free` | Thinking Machines | 1.0M | Fast reasoning fallback |
+| **T9 — Fallback** | `poolside/laguna-s-2.1:free` | Poolside | 256K | Frontier software engineering agent |
+| **T10 — Fallback** | `poolside/laguna-xs-2.1:free` | Poolside | 256K | Fast coding agent |
+| **T11 — Fallback** | `cohere/north-mini-code:free` | Cohere | 256K | Agentic coding model |
+| **T12 — Fallback** | `dots-studio/dots-3-note-preview:free` | Dots Studio | 512K | Long-form Q&A MoE |
+| **T13 — Fallback** | `recursive/flint-v1.0:free` | Recursive | 256K | Token-efficient MoE agent |
+| **T14 — Fallback** | `xingchen-agi/xing4.0-29b-a4b:free` | China Telecom | 256K | Diverse multi-lingual knowledge |
+| **T15 — Fallback** | `liquid/lfm-2.5-2.6b:free` | LiquidAI | 64K | Compact resilient fallback |
 
-> **Why this cascade?** It's ranked by *quality + context length + provider diversity*. If T1 is throttled, T2 (different provider, coding-strong) picks up. If the network blips T1/T2, T3's huge context handles long-form Q&A. T4/T5 provide provider redundancy. T6 (`openrouter/free`) is a true catch-all — OpenRouter's own auto-routed free tier that guarantees a response even if every named model is rate-limited.
-
-### Additional Free Models (Available, Not in Default Cascade)
-
-These are also free on OpenRouter today but reserved as on-demand alternates or for future tuning:
-
-| Model ID | Provider | Context |
-|----------|----------|---------|
-| `minimax/minimax-m2.7:free` | MiniMax | 197K |
-| `thinkingmachines/inkling-small:free` | Thinking Machines | 1.0M |
-| `nvidia/nemotron-3-ultra-550b-a55b:free` | NVIDIA | 1.0M |
-| `nvidia/nemotron-3.5-lightning:free` | NVIDIA | 1.0M |
-| `nvidia/nemotron-3.5-content-safety:free` | NVIDIA | 128K |
-| `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | NVIDIA | 256K |
-| `google/gemma-4-26b-a4b-it:free` | Google | 262K |
-| `cohere/north-mini-code:free` | Cohere | 256K |
-| `liquid/lfm-2.5-2.6b:free` | LiquidAI | 66K |
-| `dots-studio/dots-3-note-preview:free` | dots-studio | 512K |
-| `inclusionai/ling-3.0-flash-fin:free` | InclusionAI | 262K |
-| `poolside/laguna-s-2.1:free` | Poolside | 262K |
-| `poolside/laguna-xs-2.1:free` | Poolside | 262K |
+> **Why this cascade?** It's ranked by *quality + context length + provider diversity*. The cascade spans 9 distinct AI providers (Google, NVIDIA, Thinking Machines, Poolside, Cohere, Dots Studio, Recursive, XingChen, LiquidAI). If Google is throttled, NVIDIA picks up; if NVIDIA is busy, Thinking Machines or Poolside answers. Individual tier timeouts are strictly isolated so a slow provider never aborts the overall cascade.
 
 ### Cascade Architecture
 
@@ -567,7 +556,7 @@ portfolio/
 
 ```
 You are Threshold, an AI assistant embedded in Bikash Talukder's portfolio website.
-You run on a 6-tier OpenRouter free-model cascade (minimax-m3 → glm-5.2 → inkling → gemma-4-31b → nemotron-3-super → openrouter/free).
+You run on a multi-tier OpenRouter free-model cascade (gemma-4-31b → gemma-4-26b-moe → nemotron-3-ultra → nemotron-3.5-light → ...).
 If the current model can't answer or fails, the next tier in the cascade automatically takes over — you don't need to mention this to the user unless asked.
 Your job is to answer questions about Bikash — a Full-Stack Developer & AI Systems Builder.
 
